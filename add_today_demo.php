@@ -46,7 +46,7 @@ $curOb = atd_count($conn, 'outbound_orders');
 
 /* ── Helpers ─────────────────────────────────────────────────────────  */
 $suppliers    = ['Nordic Goods', 'Urban Trade', 'EuroShip', 'Fresh Import', 'TransLog Expert'];
-$operators    = ['Andrei Popa', 'Ioana M', 'Maria T', 'Alex D', 'Diana I', 'Cristian G', 'Radu C'];
+$operators    = ['Vlad Ionescu', 'Irina S', 'Monica D', 'Paul R', 'Carmen N', 'Dan V', 'Sorin L'];
 $destinations = ['București', 'Timișoara', 'Cluj-Napoca', 'Oradea', 'Brașov', 'Sibiu', 'Ploiești'];
 
 function atd_el(array $a): string {

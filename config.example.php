@@ -2,10 +2,12 @@
 
 date_default_timezone_set('Europe/Bucharest');
 
+// Copiază fișierul ca config.php și completează datele bazei de date.
+// Valorile de mai jos sunt cele implicite într-o instalare nouă de WampServer.
 $host = "localhost";
-$dbname = "your_database_name";
-$username = "your_username";
-$password = "your_password";
+$dbname = "flowlogix";
+$username = "root";
+$password = "";
 
 $conn = new mysqli($host, $username, $password, $dbname);
 
