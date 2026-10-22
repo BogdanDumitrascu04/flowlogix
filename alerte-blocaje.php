@@ -50,7 +50,7 @@ UNION ALL
 
 (SELECT
   'pickpack'              AS module,
-  CAST(order_number AS CHAR) AS reference,
+  CAST(order_number AS CHAR) COLLATE utf8mb4_unicode_ci AS reference,
   COALESCE(operator_name, 'Neatribuit') AS context,
   'Comandă nefinalizată'  AS problem,
   created_at,
@@ -64,7 +64,7 @@ UNION ALL
 
 (SELECT
   'outbound'              AS module,
-  CAST(order_number AS CHAR) AS reference,
+  CAST(order_number AS CHAR) COLLATE utf8mb4_unicode_ci AS reference,
   destination             AS context,
   'Expediție neefectuată' AS problem,
   created_at,

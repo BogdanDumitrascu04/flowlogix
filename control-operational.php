@@ -43,11 +43,11 @@ $blocajeTableQuery = "
   DATEDIFF(CURDATE(), COALESCE(expected_finished_date, DATE(created_at))) AS days_overdue
 FROM inbound_orders WHERE finished_at IS NULL AND (expected_finished_date < CURDATE() OR DATE(created_at) < CURDATE()))
 UNION ALL
-(SELECT 'pickpack' AS module, CAST(order_number AS CHAR), 'Comandă nefinalizată',
+(SELECT 'pickpack' AS module, CAST(order_number AS CHAR) COLLATE utf8mb4_unicode_ci, 'Comandă nefinalizată',
   DATEDIFF(CURDATE(), expected_finished_date)
 FROM pickpack_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE())
 UNION ALL
-(SELECT 'outbound' AS module, CAST(order_number AS CHAR), 'Expediție neefectuată',
+(SELECT 'outbound' AS module, CAST(order_number AS CHAR) COLLATE utf8mb4_unicode_ci, 'Expediție neefectuată',
   DATEDIFF(CURDATE(), DATE(planned_date))
 FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE())
 ORDER BY days_overdue DESC
