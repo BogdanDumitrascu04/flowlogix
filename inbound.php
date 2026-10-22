@@ -38,23 +38,24 @@ if ($roleKey === 'tura') {
 }
 
 /* FILTRARE PE PERIOADĂ */
-$dateCondition = "";
+// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+$dateCondition = "created_at BETWEEN ? AND ?";
 $periodLabel = "Ultimele 7 zile";
 
 if ($period === 'today') {
-  $dateCondition = "DATE(created_at) = CURDATE()";
+  $dateParams = flx_period_params('today');
   $periodLabel = "Astăzi";
 } elseif ($period === '7d') {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+  $dateParams = flx_period_params('7d');
   $periodLabel = "Ultimele 7 zile";
 } elseif ($period === '30d') {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+  $dateParams = flx_period_params('30d');
   $periodLabel = "Ultimele 30 zile";
 } elseif ($period === 'month') {
-  $dateCondition = "MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())";
+  $dateParams = flx_period_params('month');
   $periodLabel = "Luna curentă";
 } else {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+  $dateParams = flx_period_params('7d');
   $periodLabel = "Ultimele 7 zile";
 }
 
@@ -62,7 +63,7 @@ if ($period === 'today') {
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $csvQuery = "SELECT reception_number, supplier_name, created_at, finished_at, expected_finished_date
                  FROM inbound_orders WHERE $dateCondition ORDER BY created_at DESC";
-    $csvResult = $conn->query($csvQuery);
+    $csvResult = flx_query($conn, $csvQuery, $dateParams);
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="inbound-' . date('Y-m-d') . '.csv"');
     $output = fopen('php://output', 'w');
@@ -146,16 +147,16 @@ $hourlyChartQuery = "
   ORDER BY HOUR(created_at) ASC
 ";
 
-$totalResult        = $conn->query($totalQuery);
-$completedResult    = $conn->query($completedQuery);
-$processingResult   = $conn->query($processingQuery);
-$backlogResult      = $conn->query($backlogQuery);
-$highPriorityResult = $conn->query($highPriorityQuery);
-$tableResult        = $conn->query($tableQuery);
-$backlogWarningsResult = $conn->query($backlogWarningsQuery);
-$recentResult       = $conn->query($recentQuery);
-$dailyChartResult   = $conn->query($dailyChartQuery);
-$hourlyChartResult  = $conn->query($hourlyChartQuery);
+$totalResult        = flx_query($conn, $totalQuery, $dateParams);
+$completedResult    = flx_query($conn, $completedQuery, $dateParams);
+$processingResult   = flx_query($conn, $processingQuery, $dateParams);
+$backlogResult      = flx_query($conn, $backlogQuery, $dateParams);
+$highPriorityResult = flx_query($conn, $highPriorityQuery, $dateParams);
+$tableResult        = flx_query($conn, $tableQuery, $dateParams);
+$backlogWarningsResult = flx_query($conn, $backlogWarningsQuery, $dateParams);
+$recentResult       = flx_query($conn, $recentQuery, $dateParams);
+$dailyChartResult   = flx_query($conn, $dailyChartQuery, $dateParams);
+$hourlyChartResult  = flx_query($conn, $hourlyChartQuery, $dateParams);
 
 $totalInbound        = ($totalResult        && $totalResult->num_rows        > 0) ? (int)$totalResult->fetch_assoc()['total']        : 0;
 $completedInbound    = ($completedResult    && $completedResult->num_rows    > 0) ? (int)$completedResult->fetch_assoc()['total']    : 0;

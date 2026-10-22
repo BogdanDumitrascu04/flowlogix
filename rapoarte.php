@@ -13,25 +13,28 @@ if (!in_array($_SESSION['role'] ?? '', $allowedRoles, true)) {
 
 $currentPage = 'rapoarte';
 require_once 'config.php';
+require_once 'flow_helpers.php';
 
 $roleKey = isset($_SESSION['role']) ? $_SESSION['role'] : 'default';
 
 $period = isset($_GET['period']) ? $_GET['period'] : '7d';
 
-$dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+$dateCondition = "created_at BETWEEN ? AND ?";
+$dateParams = flx_period_params('7d');
 $periodLabel   = "Ultimele 7 zile";
 
 switch ($period) {
     case 'today':
-        $dateCondition = "DATE(created_at) = CURDATE()";
+        $dateParams = flx_period_params('today');
         $periodLabel   = "Astăzi";
         break;
     case '30d':
-        $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        $dateParams = flx_period_params('30d');
         $periodLabel   = "Ultimele 30 zile";
         break;
     case 'month':
-        $dateCondition = "MONTH(created_at) = MONTH(NOW()) AND YEAR(created_at) = YEAR(NOW())";
+        $dateParams = flx_period_params('month');
         $periodLabel   = "Luna curentă";
         break;
     default:
@@ -39,22 +42,22 @@ switch ($period) {
         break;
 }
 
-function rpt_count(mysqli $db, string $sql): int {
-    $r = $db->query($sql);
+function rpt_count(mysqli $db, string $sql, array $params = []): int {
+    $r = flx_query($db, $sql, $params);
     return ($r && $r->num_rows > 0) ? (int)$r->fetch_assoc()['total'] : 0;
 }
 
-$totalInbound    = rpt_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE $dateCondition");
-$totalPickpack   = rpt_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE $dateCondition");
-$totalOutbound   = rpt_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE $dateCondition");
+$totalInbound    = rpt_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE $dateCondition", $dateParams);
+$totalPickpack   = rpt_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE $dateCondition", $dateParams);
+$totalOutbound   = rpt_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE $dateCondition", $dateParams);
 
-$backlogInbound  = rpt_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND (expected_finished_date < CURDATE() OR DATE(created_at) < CURDATE()) AND $dateCondition");
-$backlogPickpack = rpt_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE() AND $dateCondition");
-$backlogOutbound = rpt_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE() AND $dateCondition");
+$backlogInbound  = rpt_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND (expected_finished_date < CURDATE() OR DATE(created_at) < CURDATE()) AND $dateCondition", $dateParams);
+$backlogPickpack = rpt_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE() AND $dateCondition", $dateParams);
+$backlogOutbound = rpt_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE() AND $dateCondition", $dateParams);
 
-$completedInbound  = rpt_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NOT NULL AND $dateCondition");
-$completedPickpack = rpt_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NOT NULL AND $dateCondition");
-$shippedOutbound   = rpt_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NOT NULL AND $dateCondition");
+$completedInbound  = rpt_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NOT NULL AND $dateCondition", $dateParams);
+$completedPickpack = rpt_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NOT NULL AND $dateCondition", $dateParams);
+$shippedOutbound   = rpt_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NOT NULL AND $dateCondition", $dateParams);
 
 $totalOperations = $totalInbound + $totalPickpack + $totalOutbound;
 $totalCompleted  = $completedInbound + $completedPickpack + $shippedOutbound;

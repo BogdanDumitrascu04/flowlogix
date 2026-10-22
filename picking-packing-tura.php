@@ -17,32 +17,35 @@ require_once 'flow_helpers.php';
 $currentPage = 'picking-packing-tura';
 
 $period = isset($_GET['period']) ? $_GET['period'] : 'today';
-$dateCondition = "DATE(created_at) = CURDATE()";
+// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+$dateCondition = "created_at BETWEEN ? AND ?";
+$dateParams = flx_period_params('today');
 
 if ($period === '7d') {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+  $dateParams = flx_period_params('7d');
 } elseif ($period === '30d') {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+  $dateParams = flx_period_params('30d');
 } elseif ($period === 'month') {
-  $dateCondition = "MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())";
+  $dateParams = flx_period_params('month');
 } else {
   $period = 'today';
 }
 
-$finishedAtCondition = "DATE(finished_at) = CURDATE()";
+$finishedAtCondition = "finished_at BETWEEN ? AND ?";
+$finishedParams = flx_period_params('today');
 if ($period === '7d') {
-    $finishedAtCondition = "finished_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+    $finishedParams = flx_period_params('7d');
 } elseif ($period === '30d') {
-    $finishedAtCondition = "finished_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+    $finishedParams = flx_period_params('30d');
 } elseif ($period === 'month') {
-    $finishedAtCondition = "MONTH(finished_at) = MONTH(CURDATE()) AND YEAR(finished_at) = YEAR(CURDATE())";
+    $finishedParams = flx_period_params('month');
 }
 
 /* CSV export */
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $csvQuery = "SELECT order_number, operator_name, items_count, created_at, finished_at, expected_finished_date
                  FROM pickpack_orders WHERE $dateCondition ORDER BY created_at DESC";
-    $csvResult = $conn->query($csvQuery);
+    $csvResult = flx_query($conn, $csvQuery, $dateParams);
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="picking-packing-' . date('Y-m-d') . '.csv"');
     $output = fopen('php://output', 'w');
@@ -123,12 +126,12 @@ WHERE $dateCondition
 GROUP BY operator_name
 ORDER BY total DESC";
 
-$inWorkResult = $conn->query($inWorkQuery);
-$completedPeriodResult = $conn->query($completedPeriodQuery);
-$priorityResult = $conn->query($priorityQuery);
-$itemsResult = $conn->query($totalItemsQuery);
-$tableResult = $conn->query($tableQuery);
-$operatorResult = $conn->query($operatorQuery);
+$inWorkResult = flx_query($conn, $inWorkQuery, $dateParams);
+$completedPeriodResult = flx_query($conn, $completedPeriodQuery, $finishedParams);
+$priorityResult = flx_query($conn, $priorityQuery, $dateParams);
+$itemsResult = flx_query($conn, $totalItemsQuery, array_merge($dateParams, $finishedParams));
+$tableResult = flx_query($conn, $tableQuery, $dateParams);
+$operatorResult = flx_query($conn, $operatorQuery, $dateParams);
 
 $inWork = ($inWorkResult && $inWorkResult->num_rows > 0) ? (int)$inWorkResult->fetch_assoc()['total'] : 0;
 $completedPeriod = ($completedPeriodResult && $completedPeriodResult->num_rows > 0) ? (int)$completedPeriodResult->fetch_assoc()['total'] : 0;

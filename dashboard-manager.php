@@ -11,29 +11,31 @@ if ($_SESSION['role'] !== 'manager') {
 }
 
 require_once 'config.php';
+require_once 'flow_helpers.php';
 
 $currentPage = 'dashboard';
 $period      = isset($_GET['period']) ? $_GET['period'] : '30d';
-$currentDate = date('Y-m-d H:i:s');
-$dateFilter  = "created_at >= DATE_SUB('$currentDate', INTERVAL 30 DAY)";
+// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+$dateFilter = "created_at BETWEEN ? AND ?";
+$dateParams = flx_period_params('30d');
 
 switch ($period) {
     case 'today':
-        $dateFilter = "DATE(created_at) = CURDATE()";
+        $dateParams = flx_period_params('today');
         break;
     case '7d':
-        $dateFilter = "created_at >= DATE_SUB('$currentDate', INTERVAL 7 DAY)";
+        $dateParams = flx_period_params('7d');
         break;
     case 'month':
-        $dateFilter = "MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())";
+        $dateParams = flx_period_params('month');
         break;
     default:
         $period = '30d';
         break;
 }
 
-function mgr_flux_stats(mysqli $db, string $sql): array {
-    $r = $db->query($sql);
+function mgr_flux_stats(mysqli $db, string $sql, array $params = []): array {
+    $r = flx_query($db, $sql, $params);
     if ($r && $r->num_rows > 0) {
         $row = $r->fetch_assoc();
         return [
@@ -74,7 +76,7 @@ $inboundStats = mgr_flux_stats($conn, "
              THEN 1 ELSE 0 END) AS in_progress
     FROM inbound_orders
     WHERE $dateFilter
-");
+", $dateParams);
 
 /* Pick / Pack */
 $pickpackStats = mgr_flux_stats($conn, "
@@ -89,7 +91,7 @@ $pickpackStats = mgr_flux_stats($conn, "
              THEN 1 ELSE 0 END) AS in_progress
     FROM pickpack_orders
     WHERE $dateFilter
-");
+", $dateParams);
 
 /* Outbound */
 $outboundStats = mgr_flux_stats($conn, "
@@ -104,7 +106,7 @@ $outboundStats = mgr_flux_stats($conn, "
              THEN 1 ELSE 0 END) AS in_progress
     FROM outbound_orders
     WHERE $dateFilter
-");
+", $dateParams);
 
 $inboundTotal      = $inboundStats['total'];
 $inboundInTerm     = $inboundStats['in_term'];
@@ -232,7 +234,7 @@ FROM (
 ORDER BY days_overdue DESC
 LIMIT 10
 ";
-$delayedResult = $conn->query($delayedQuery);
+$delayedResult = flx_query($conn, $delayedQuery, array_merge($dateParams, $dateParams, $dateParams));
 ?>
 <!DOCTYPE html>
 <html lang="ro">

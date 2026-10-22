@@ -17,32 +17,35 @@ require_once 'flow_helpers.php';
 $currentPage = 'receptii-active';
 
 $period = isset($_GET['period']) ? $_GET['period'] : 'today';
-$dateCondition = "DATE(created_at) = CURDATE()";
+// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+$dateCondition = "created_at BETWEEN ? AND ?";
+$dateParams = flx_period_params('today');
 
 if ($period === '7d') {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+  $dateParams = flx_period_params('7d');
 } elseif ($period === '30d') {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+  $dateParams = flx_period_params('30d');
 } elseif ($period === 'month') {
-  $dateCondition = "MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())";
+  $dateParams = flx_period_params('month');
 } else {
   $period = 'today';
 }
 
-$finishedAtCondition = "DATE(finished_at) = CURDATE()";
+$finishedAtCondition = "finished_at BETWEEN ? AND ?";
+$finishedParams = flx_period_params('today');
 if ($period === '7d') {
-    $finishedAtCondition = "finished_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+    $finishedParams = flx_period_params('7d');
 } elseif ($period === '30d') {
-    $finishedAtCondition = "finished_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+    $finishedParams = flx_period_params('30d');
 } elseif ($period === 'month') {
-    $finishedAtCondition = "MONTH(finished_at) = MONTH(CURDATE()) AND YEAR(finished_at) = YEAR(CURDATE())";
+    $finishedParams = flx_period_params('month');
 }
 
 /* CSV export */
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $csvQuery = "SELECT reception_number, supplier_name, created_at, finished_at, expected_finished_date
                  FROM inbound_orders WHERE $dateCondition ORDER BY created_at DESC";
-    $csvResult = $conn->query($csvQuery);
+    $csvResult = flx_query($conn, $csvQuery, $dateParams);
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="receptii-active-' . date('Y-m-d') . '.csv"');
     $output = fopen('php://output', 'w');
@@ -122,11 +125,11 @@ ORDER BY
   END ASC,
   created_at DESC";
 
-$inProgressResult = $conn->query($inProgressQuery);
-$priorityResult = $conn->query($priorityQuery);
-$atRiskResult = $conn->query($atRiskQuery);
-$completedPeriodResult = $conn->query($completedPeriodQuery);
-$tableResult = $conn->query($tableQuery);
+$inProgressResult = flx_query($conn, $inProgressQuery, $dateParams);
+$priorityResult = flx_query($conn, $priorityQuery, $dateParams);
+$atRiskResult = flx_query($conn, $atRiskQuery, $dateParams);
+$completedPeriodResult = flx_query($conn, $completedPeriodQuery, $finishedParams);
+$tableResult = flx_query($conn, $tableQuery, $dateParams);
 
 $inProgress = ($inProgressResult && $inProgressResult->num_rows > 0) ? (int)$inProgressResult->fetch_assoc()['total'] : 0;
 $priorityCount = ($priorityResult && $priorityResult->num_rows > 0) ? (int)$priorityResult->fetch_assoc()['total'] : 0;

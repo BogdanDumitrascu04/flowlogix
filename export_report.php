@@ -19,20 +19,22 @@ $area = isset($_GET['area']) ? $_GET['area'] : 'all';
 $detail = isset($_GET['detail']) ? $_GET['detail'] : 'executive';
 
 /* FILTRU PERIOADĂ */
-$dateFilter = "1=1";
+// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+$dateFilter = "created_at BETWEEN ? AND ?";
+$dateParams = flx_period_params('all');
 $periodLabel = "Toată perioada";
 
 if ($period === 'today') {
-    $dateFilter = "DATE(created_at) = CURDATE()";
+    $dateParams = flx_period_params('today');
     $periodLabel = "Astăzi";
 } elseif ($period === '7d') {
-    $dateFilter = "created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+    $dateParams = flx_period_params('7d');
     $periodLabel = "Ultimele 7 zile";
 } elseif ($period === '30d') {
-    $dateFilter = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+    $dateParams = flx_period_params('30d');
     $periodLabel = "Ultimele 30 zile";
 } elseif ($period === 'month') {
-    $dateFilter = "MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())";
+    $dateParams = flx_period_params('month');
     $periodLabel = "Luna curentă";
 }
 
@@ -81,10 +83,10 @@ if ($detail === 'executive') {
         $processing = 0;
         $pending = 0;
 
-        $q1 = $conn->query("SELECT COUNT(*) AS total FROM inbound_orders WHERE $dateFilter");
-        $q2 = $conn->query("SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NOT NULL AND $dateFilter");
-        $q3 = $conn->query("SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND (expected_finished_date IS NULL OR expected_finished_date >= CURDATE()) AND $dateFilter");
-        $q4 = $conn->query("SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND expected_finished_date IS NOT NULL AND expected_finished_date < CURDATE() AND $dateFilter");
+        $q1 = flx_query($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE $dateFilter", $dateParams);
+        $q2 = flx_query($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NOT NULL AND $dateFilter", $dateParams);
+        $q3 = flx_query($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND (expected_finished_date IS NULL OR expected_finished_date >= CURDATE()) AND $dateFilter", $dateParams);
+        $q4 = flx_query($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND expected_finished_date IS NOT NULL AND expected_finished_date < CURDATE() AND $dateFilter", $dateParams);
 
         if ($q1) $total = (int)$q1->fetch_assoc()['total'];
         if ($q2) $completed = (int)$q2->fetch_assoc()['total'];
@@ -100,10 +102,10 @@ if ($detail === 'executive') {
         $inProgress = 0;
         $notStarted = 0;
 
-        $q1 = $conn->query("SELECT COUNT(*) AS total FROM pickpack_orders WHERE $dateFilter");
-        $q2 = $conn->query("SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NOT NULL AND $dateFilter");
-        $q3 = $conn->query("SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND operator_name IS NOT NULL AND operator_name <> '' AND $dateFilter");
-        $q4 = $conn->query("SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND (operator_name IS NULL OR operator_name = '') AND $dateFilter");
+        $q1 = flx_query($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE $dateFilter", $dateParams);
+        $q2 = flx_query($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NOT NULL AND $dateFilter", $dateParams);
+        $q3 = flx_query($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND operator_name IS NOT NULL AND operator_name <> '' AND $dateFilter", $dateParams);
+        $q4 = flx_query($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND (operator_name IS NULL OR operator_name = '') AND $dateFilter", $dateParams);
 
         if ($q1) $total = (int)$q1->fetch_assoc()['total'];
         if ($q2) $completed = (int)$q2->fetch_assoc()['total'];
@@ -119,10 +121,10 @@ if ($detail === 'executive') {
         $ready = 0;
         $delayed = 0;
 
-        $q1 = $conn->query("SELECT COUNT(*) AS total FROM outbound_orders WHERE $dateFilter");
-        $q2 = $conn->query("SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NOT NULL AND $dateFilter");
-        $q3 = $conn->query("SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) >= CURDATE() AND $dateFilter");
-        $q4 = $conn->query("SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE() AND $dateFilter");
+        $q1 = flx_query($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE $dateFilter", $dateParams);
+        $q2 = flx_query($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NOT NULL AND $dateFilter", $dateParams);
+        $q3 = flx_query($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) >= CURDATE() AND $dateFilter", $dateParams);
+        $q4 = flx_query($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE() AND $dateFilter", $dateParams);
 
         if ($q1) $total = (int)$q1->fetch_assoc()['total'];
         if ($q2) $shipped = (int)$q2->fetch_assoc()['total'];
@@ -140,7 +142,7 @@ if ($detail === 'executive') {
     $backlogRows = [];
 
     if ($area === 'all' || $area === 'inbound') {
-        $q = $conn->query("
+        $q = flx_query($conn, "
             SELECT 'inbound' AS module, reception_number AS reference, supplier_name AS context,
               'Recepție nefinalizată' AS problem, expected_finished_date AS due_date,
               DATEDIFF(CURDATE(), COALESCE(expected_finished_date, DATE(created_at))) AS days_overdue
@@ -149,12 +151,12 @@ if ($detail === 'executive') {
               AND (expected_finished_date < CURDATE() OR DATE(created_at) < CURDATE())
               AND $dateFilter
             ORDER BY days_overdue DESC
-        ");
+        ", $dateParams);
         if ($q) while ($row = $q->fetch_assoc()) $backlogRows[] = $row;
     }
 
     if ($area === 'all' || $area === 'pickpack') {
-        $q = $conn->query("
+        $q = flx_query($conn, "
             SELECT 'pickpack' AS module, CAST(order_number AS CHAR) AS reference,
               COALESCE(operator_name, 'Neatribuit') AS context,
               'Comandă nefinalizată' AS problem, expected_finished_date AS due_date,
@@ -164,12 +166,12 @@ if ($detail === 'executive') {
               AND expected_finished_date < CURDATE()
               AND $dateFilter
             ORDER BY days_overdue DESC
-        ");
+        ", $dateParams);
         if ($q) while ($row = $q->fetch_assoc()) $backlogRows[] = $row;
     }
 
     if ($area === 'all' || $area === 'outbound') {
-        $q = $conn->query("
+        $q = flx_query($conn, "
             SELECT 'outbound' AS module, CAST(order_number AS CHAR) AS reference,
               destination AS context,
               'Expediție neefectuată' AS problem, DATE(planned_date) AS due_date,
@@ -179,7 +181,7 @@ if ($detail === 'executive') {
               AND DATE(planned_date) < CURDATE()
               AND $dateFilter
             ORDER BY days_overdue DESC
-        ");
+        ", $dateParams);
         if ($q) while ($row = $q->fetch_assoc()) $backlogRows[] = $row;
     }
 
@@ -215,7 +217,7 @@ else {
             WHERE $dateFilter
             ORDER BY created_at DESC
         ";
-        $result = $conn->query($query);
+        $result = flx_query($conn, $query, $dateParams);
 
         if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
@@ -245,7 +247,7 @@ else {
             WHERE $dateFilter
             ORDER BY created_at DESC
         ";
-        $result = $conn->query($query);
+        $result = flx_query($conn, $query, $dateParams);
 
         if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
@@ -275,7 +277,7 @@ else {
             WHERE $dateFilter
             ORDER BY created_at DESC
         ";
-        $result = $conn->query($query);
+        $result = flx_query($conn, $query, $dateParams);
 
         if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {

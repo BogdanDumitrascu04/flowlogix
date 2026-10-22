@@ -27,10 +27,14 @@ $confirm = isset($_GET['confirm']) && $_GET['confirm'] === '1';
 
 /* ── Anti-duplicate: check if today's demo data was already seeded ─── */
 $alreadyExists = false;
-$chk = $conn->query(
+$chkStmt = $conn->prepare(
     "SELECT COUNT(*) AS cnt FROM inbound_orders
-     WHERE reception_number LIKE 'DEMO-" . $conn->real_escape_string($today) . "-%'"
+     WHERE reception_number LIKE ?"
 );
+$chkPattern = 'DEMO-' . $today . '-%';
+$chkStmt->bind_param("s", $chkPattern);
+$chkStmt->execute();
+$chk = $chkStmt->get_result();
 if ($chk && ($chkRow = $chk->fetch_assoc())) {
     $alreadyExists = (int)$chkRow['cnt'] > 0;
 }
@@ -216,12 +220,13 @@ for ($i = 19; $i <= 20; $i++) {
 function atd_insert(mysqli $c, string $table, array $rows): int {
     $n = 0;
     foreach ($rows as $row) {
+        // Numele coloanelor vin din cod; valorile se leagă ca parametri (?)
         $cols = '`' . implode('`,`', array_keys($row)) . '`';
-        $vals = array_map(
-            fn($v) => $v === null ? 'NULL' : "'" . $c->real_escape_string((string)$v) . "'",
-            array_values($row)
-        );
-        if ($c->query("INSERT INTO `$table` ($cols) VALUES (" . implode(',', $vals) . ")")) {
+        $placeholders = implode(',', array_fill(0, count($row), '?'));
+        $values = array_values($row);
+        $stmt = $c->prepare("INSERT INTO `$table` ($cols) VALUES ($placeholders)");
+        $stmt->bind_param(str_repeat('s', count($values)), ...$values);
+        if ($stmt->execute()) {
             $n++;
         }
     }

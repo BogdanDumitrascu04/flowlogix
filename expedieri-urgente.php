@@ -17,37 +17,41 @@ require_once 'flow_helpers.php';
 $currentPage = 'expedieri-urgente';
 
 $period = isset($_GET['period']) ? $_GET['period'] : 'today';
-$dateCondition = "DATE(created_at) = CURDATE()";
+// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+$dateCondition = "created_at BETWEEN ? AND ?";
+$dateParams = flx_period_params('today');
 
 if ($period === '7d') {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+  $dateParams = flx_period_params('7d');
 } elseif ($period === '30d') {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+  $dateParams = flx_period_params('30d');
 } elseif ($period === 'month') {
-  $dateCondition = "MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())";
+  $dateParams = flx_period_params('month');
 } else {
   $period = 'today';
 }
 
 /* Outbound KPIs use planned_date; shipped-late uses finished_at */
-$plannedDateCondition = "DATE(planned_date) = CURDATE()";
-$finishedAtCondition  = "DATE(finished_at) = CURDATE()";
+$plannedDateCondition = "planned_date BETWEEN ? AND ?";
+$plannedParams = flx_period_params('today');
+$finishedAtCondition = "finished_at BETWEEN ? AND ?";
+$finishedParams = flx_period_params('today');
 if ($period === '7d') {
-    $plannedDateCondition = "planned_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
-    $finishedAtCondition  = "finished_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+    $plannedParams = flx_period_params('7d');
+    $finishedParams = flx_period_params('7d');
 } elseif ($period === '30d') {
-    $plannedDateCondition = "planned_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
-    $finishedAtCondition  = "finished_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+    $plannedParams = flx_period_params('30d');
+    $finishedParams = flx_period_params('30d');
 } elseif ($period === 'month') {
-    $plannedDateCondition = "MONTH(planned_date) = MONTH(CURDATE()) AND YEAR(planned_date) = YEAR(CURDATE())";
-    $finishedAtCondition  = "MONTH(finished_at) = MONTH(CURDATE()) AND YEAR(finished_at) = YEAR(CURDATE())";
+    $plannedParams = flx_period_params('month');
+    $finishedParams = flx_period_params('month');
 }
 
 /* CSV export */
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $csvQuery = "SELECT order_number, destination, created_at, planned_date, finished_at
                  FROM outbound_orders WHERE $plannedDateCondition ORDER BY planned_date ASC";
-    $csvResult = $conn->query($csvQuery);
+    $csvResult = flx_query($conn, $csvQuery, $plannedParams);
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="expedieri-urgente-' . date('Y-m-d') . '.csv"');
     $output = fopen('php://output', 'w');
@@ -115,12 +119,12 @@ FROM outbound_orders
 WHERE $plannedDateCondition
 GROUP BY derived_status";
 
-$readyResult = $conn->query($readyQuery);
-$delayedResult = $conn->query($delayedQuery);
-$priorityResult = $conn->query($priorityQuery);
-$avgDelayResult = $conn->query($avgDelayQuery);
-$tableResult = $conn->query($tableQuery);
-$statusResult = $conn->query($statusQuery);
+$readyResult = flx_query($conn, $readyQuery, $plannedParams);
+$delayedResult = flx_query($conn, $delayedQuery, $plannedParams);
+$priorityResult = flx_query($conn, $priorityQuery, $finishedParams);
+$avgDelayResult = flx_query($conn, $avgDelayQuery, $plannedParams);
+$tableResult = flx_query($conn, $tableQuery, $plannedParams);
+$statusResult = flx_query($conn, $statusQuery, $plannedParams);
 
 $ready = ($readyResult && $readyResult->num_rows > 0) ? (int)$readyResult->fetch_assoc()['total'] : 0;
 $delayed = ($delayedResult && $delayedResult->num_rows > 0) ? (int)$delayedResult->fetch_assoc()['total'] : 0;

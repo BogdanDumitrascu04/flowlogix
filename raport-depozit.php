@@ -12,25 +12,28 @@ if (!in_array($_SESSION['role'] ?? '', $allowedRoles, true)) {
 }
 
 require_once 'config.php';
+require_once 'flow_helpers.php';
 
 $userName = htmlspecialchars($_SESSION['user'] ?? '—');
 
 /* Perioadă */
 $period        = isset($_GET['period']) ? $_GET['period'] : '30d';
-$dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+$dateCondition = "created_at BETWEEN ? AND ?";
+$dateParams = flx_period_params('30d');
 $periodLabel   = "Ultimele 30 zile";
 
 switch ($period) {
     case 'today':
-        $dateCondition = "DATE(created_at) = CURDATE()";
+        $dateParams = flx_period_params('today');
         $periodLabel   = "Astăzi";
         break;
     case '7d':
-        $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+        $dateParams = flx_period_params('7d');
         $periodLabel   = "Ultimele 7 zile";
         break;
     case 'month':
-        $dateCondition = "MONTH(created_at) = MONTH(NOW()) AND YEAR(created_at) = YEAR(NOW())";
+        $dateParams = flx_period_params('month');
         $periodLabel   = "Luna curentă";
         break;
     default:
@@ -38,28 +41,28 @@ switch ($period) {
         break;
 }
 
-function rpt_dep_count(mysqli $db, string $sql): int {
-    $r = $db->query($sql);
+function rpt_dep_count(mysqli $db, string $sql, array $params = []): int {
+    $r = flx_query($db, $sql, $params);
     return ($r && $r->num_rows > 0) ? (int)$r->fetch_assoc()['total'] : 0;
 }
 
 /* Inbound */
-$inboundTotal    = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE $dateCondition");
-$inboundActive   = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND $dateCondition");
-$inboundBacklog  = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND (expected_finished_date < CURDATE() OR DATE(created_at) < CURDATE()) AND $dateCondition");
-$inboundComplete = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NOT NULL AND $dateCondition");
+$inboundTotal    = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE $dateCondition", $dateParams);
+$inboundActive   = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND $dateCondition", $dateParams);
+$inboundBacklog  = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND (expected_finished_date < CURDATE() OR DATE(created_at) < CURDATE()) AND $dateCondition", $dateParams);
+$inboundComplete = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NOT NULL AND $dateCondition", $dateParams);
 
 /* Pick / Pack */
-$pickpackTotal    = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE $dateCondition");
-$pickpackInWork   = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND operator_name IS NOT NULL AND operator_name <> '' AND $dateCondition");
-$pickpackBacklog  = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE() AND $dateCondition");
-$pickpackComplete = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NOT NULL AND $dateCondition");
+$pickpackTotal    = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE $dateCondition", $dateParams);
+$pickpackInWork   = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND operator_name IS NOT NULL AND operator_name <> '' AND $dateCondition", $dateParams);
+$pickpackBacklog  = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE() AND $dateCondition", $dateParams);
+$pickpackComplete = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NOT NULL AND $dateCondition", $dateParams);
 
 /* Outbound */
-$outboundTotal   = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE $dateCondition");
-$outboundReady   = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) >= CURDATE() AND $dateCondition");
-$outboundBacklog = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE() AND $dateCondition");
-$outboundShipped = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NOT NULL AND $dateCondition");
+$outboundTotal   = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE $dateCondition", $dateParams);
+$outboundReady   = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) >= CURDATE() AND $dateCondition", $dateParams);
+$outboundBacklog = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE() AND $dateCondition", $dateParams);
+$outboundShipped = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NOT NULL AND $dateCondition", $dateParams);
 
 $interventii = $inboundBacklog + $pickpackBacklog + $outboundBacklog;
 
@@ -110,7 +113,7 @@ FROM (
 ORDER BY days_overdue DESC
 LIMIT 10
 ";
-$blockersResult = $conn->query($blockersQuery);
+$blockersResult = flx_query($conn, $blockersQuery, array_merge($dateParams, $dateParams, $dateParams));
 
 $generatedAt = date('d.m.Y H:i');
 ?>

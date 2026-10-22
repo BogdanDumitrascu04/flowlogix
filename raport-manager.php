@@ -12,24 +12,27 @@ if (!in_array($_SESSION['role'] ?? '', $allowedRoles, true)) {
 }
 
 require_once 'config.php';
+require_once 'flow_helpers.php';
 
 $userName = htmlspecialchars($_SESSION['user'] ?? '—');
 
 $period        = isset($_GET['period']) ? $_GET['period'] : '30d';
-$dateFilter    = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+$dateFilter = "created_at BETWEEN ? AND ?";
+$dateParams = flx_period_params('30d');
 $periodLabel   = "Ultimele 30 zile";
 
 switch ($period) {
     case 'today':
-        $dateFilter  = "DATE(created_at) = CURDATE()";
+        $dateParams = flx_period_params('today');
         $periodLabel = "Astăzi";
         break;
     case '7d':
-        $dateFilter  = "created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+        $dateParams = flx_period_params('7d');
         $periodLabel = "Ultimele 7 zile";
         break;
     case 'month':
-        $dateFilter  = "MONTH(created_at) = MONTH(NOW()) AND YEAR(created_at) = YEAR(NOW())";
+        $dateParams = flx_period_params('month');
         $periodLabel = "Luna curentă";
         break;
     default:
@@ -37,8 +40,8 @@ switch ($period) {
         break;
 }
 
-function rpt_mgr_flux(mysqli $db, string $sql): array {
-    $r = $db->query($sql);
+function rpt_mgr_flux(mysqli $db, string $sql, array $params = []): array {
+    $r = flx_query($db, $sql, $params);
     if ($r && $r->num_rows > 0) {
         $row = $r->fetch_assoc();
         return [
@@ -72,7 +75,7 @@ $inboundStats = rpt_mgr_flux($conn, "
              THEN 1 ELSE 0 END) AS in_progress
     FROM inbound_orders
     WHERE $dateFilter
-");
+", $dateParams);
 
 /* Pick / Pack */
 $pickpackStats = rpt_mgr_flux($conn, "
@@ -87,7 +90,7 @@ $pickpackStats = rpt_mgr_flux($conn, "
              THEN 1 ELSE 0 END) AS in_progress
     FROM pickpack_orders
     WHERE $dateFilter
-");
+", $dateParams);
 
 /* Outbound */
 $outboundStats = rpt_mgr_flux($conn, "
@@ -102,7 +105,7 @@ $outboundStats = rpt_mgr_flux($conn, "
              THEN 1 ELSE 0 END) AS in_progress
     FROM outbound_orders
     WHERE $dateFilter
-");
+", $dateParams);
 
 $inboundTotal      = $inboundStats['total'];
 $inboundInTerm     = $inboundStats['in_term'];
@@ -180,7 +183,7 @@ FROM (
 ORDER BY days_overdue DESC
 LIMIT 10
 ";
-$delayedResult = $conn->query($delayedQuery);
+$delayedResult = flx_query($conn, $delayedQuery, array_merge($dateParams, $dateParams, $dateParams));
 
 $generatedAt = date('d.m.Y H:i');
 ?>

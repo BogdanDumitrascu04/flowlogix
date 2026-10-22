@@ -20,29 +20,30 @@ $userName = isset($_SESSION['user']) ? htmlspecialchars($_SESSION['user']) : 'Ut
 
 /* Filtrare perioadă */
 $period = isset($_GET['period']) ? $_GET['period'] : 'today';
-$dateCondition = "";
+// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+$dateCondition = "created_at BETWEEN ? AND ?";
 $periodLabel = "";
 
 switch ($period) {
     case 'today':
-        $dateCondition = "DATE(created_at) = CURDATE()";
+        $dateParams = flx_period_params('today');
         $periodLabel = "Astăzi";
         break;
     case '7d':
-        $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+        $dateParams = flx_period_params('7d');
         $periodLabel = "Ultimele 7 zile";
         break;
     case '30d':
-        $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        $dateParams = flx_period_params('30d');
         $periodLabel = "Ultimele 30 zile";
         break;
     case 'month':
-        $dateCondition = "MONTH(created_at) = MONTH(NOW()) AND YEAR(created_at) = YEAR(NOW())";
+        $dateParams = flx_period_params('month');
         $periodLabel = "Luna curentă";
         break;
     default:
         $period = 'today';
-        $dateCondition = "DATE(created_at) = CURDATE()";
+        $dateParams = flx_period_params('today');
         $periodLabel = "Astăzi";
         break;
 }
@@ -109,20 +110,20 @@ $exceptionsPickpackQuery = "
   LIMIT 3
 ";
 
-$inboundProcessingResult = $conn->query($inboundProcessingQuery);
-$pickpackInProgressResult = $conn->query($pickpackInProgressQuery);
-$outboundDelayedResult    = $conn->query($outboundDelayedQuery);
-$backlogInboundResult     = $conn->query($backlogInboundQuery);
-$backlogPickpackResult    = $conn->query($backlogPickpackQuery);
-$backlogOutboundResult    = $conn->query($backlogOutboundQuery);
+$inboundProcessingResult = flx_query($conn, $inboundProcessingQuery, $dateParams);
+$pickpackInProgressResult = flx_query($conn, $pickpackInProgressQuery, $dateParams);
+$outboundDelayedResult    = flx_query($conn, $outboundDelayedQuery, $dateParams);
+$backlogInboundResult     = flx_query($conn, $backlogInboundQuery, $dateParams);
+$backlogPickpackResult    = flx_query($conn, $backlogPickpackQuery, $dateParams);
+$backlogOutboundResult    = flx_query($conn, $backlogOutboundQuery, $dateParams);
 
 $recentInboundResult = $conn->query($recentInboundQuery);
 $recentPickpackResult = $conn->query($recentPickpackQuery);
 $recentOutboundResult = $conn->query($recentOutboundQuery);
 
-$exceptionsInboundResult = $conn->query($exceptionsInboundQuery);
-$exceptionsOutboundResult = $conn->query($exceptionsOutboundQuery);
-$exceptionsPickpackResult = $conn->query($exceptionsPickpackQuery);
+$exceptionsInboundResult = flx_query($conn, $exceptionsInboundQuery, $dateParams);
+$exceptionsOutboundResult = flx_query($conn, $exceptionsOutboundQuery, $dateParams);
+$exceptionsPickpackResult = flx_query($conn, $exceptionsPickpackQuery, $dateParams);
 
 $inboundProcessing  = ($inboundProcessingResult  && $inboundProcessingResult->num_rows  > 0) ? (int)$inboundProcessingResult->fetch_assoc()['total']  : 0;
 $pickpackInProgress = ($pickpackInProgressResult && $pickpackInProgressResult->num_rows > 0) ? (int)$pickpackInProgressResult->fetch_assoc()['total'] : 0;

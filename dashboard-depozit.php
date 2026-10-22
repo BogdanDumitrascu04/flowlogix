@@ -24,23 +24,24 @@ $pageSubtitle = "Privire de ansamblu asupra fluxurilor logistice, capacității 
 $primaryButtonIcon = "bx-buildings";
 $primaryButtonText = "Analiză depozit";
 
-$dateCondition = "";
+// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+$dateCondition = "created_at BETWEEN ? AND ?";
 $periodLabel = "Ultimele 30 zile";
 
 if ($period === 'today') {
-  $dateCondition = "DATE(created_at) = CURDATE()";
+  $dateParams = flx_period_params('today');
   $periodLabel = "Astăzi";
 } elseif ($period === '7d') {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+  $dateParams = flx_period_params('7d');
   $periodLabel = "Ultimele 7 zile";
 } elseif ($period === '30d') {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+  $dateParams = flx_period_params('30d');
   $periodLabel = "Ultimele 30 zile";
 } elseif ($period === 'month') {
-  $dateCondition = "MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())";
+  $dateParams = flx_period_params('month');
   $periodLabel = "Luna curentă";
 } else {
-  $dateCondition = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+  $dateParams = flx_period_params('30d');
   $periodLabel = "Ultimele 30 zile";
 }
 
@@ -164,33 +165,33 @@ $trendChartQuery = "
 ";
 
 /* execuție query-uri */
-$inboundTotalResult = $conn->query($inboundTotalQuery);
-$pickpackTotalResult = $conn->query($pickpackTotalQuery);
-$outboundTotalResult = $conn->query($outboundTotalQuery);
-$pickpackBacklogResult = $conn->query($pickpackBacklogQuery);
+$inboundTotalResult = flx_query($conn, $inboundTotalQuery, $dateParams);
+$pickpackTotalResult = flx_query($conn, $pickpackTotalQuery, $dateParams);
+$outboundTotalResult = flx_query($conn, $outboundTotalQuery, $dateParams);
+$pickpackBacklogResult = flx_query($conn, $pickpackBacklogQuery, $dateParams);
 
-$inboundActiveResult    = $conn->query($inboundActiveQuery);
-$inboundBacklogResult   = $conn->query($inboundBacklogQuery);
-$inboundCompletedResult = $conn->query($inboundCompletedQuery);
+$inboundActiveResult    = flx_query($conn, $inboundActiveQuery, $dateParams);
+$inboundBacklogResult   = flx_query($conn, $inboundBacklogQuery, $dateParams);
+$inboundCompletedResult = flx_query($conn, $inboundCompletedQuery, $dateParams);
 
-$pickpackInProgressResult = $conn->query($pickpackInProgressQuery);
-$pickpackCompletedResult  = $conn->query($pickpackCompletedQuery);
+$pickpackInProgressResult = flx_query($conn, $pickpackInProgressQuery, $dateParams);
+$pickpackCompletedResult  = flx_query($conn, $pickpackCompletedQuery, $dateParams);
 
-$outboundReadyResult   = $conn->query($outboundReadyQuery);
-$outboundShippedResult = $conn->query($outboundShippedQuery);
-$outboundBacklogResult = $conn->query($outboundBacklogQuery);
+$outboundReadyResult   = flx_query($conn, $outboundReadyQuery, $dateParams);
+$outboundShippedResult = flx_query($conn, $outboundShippedQuery, $dateParams);
+$outboundBacklogResult = flx_query($conn, $outboundBacklogQuery, $dateParams);
 
-$recentInboundResult = $conn->query($recentInboundQuery);
-$recentPickpackResult = $conn->query($recentPickpackQuery);
-$recentOutboundResult = $conn->query($recentOutboundQuery);
+$recentInboundResult = flx_query($conn, $recentInboundQuery, $dateParams);
+$recentPickpackResult = flx_query($conn, $recentPickpackQuery, $dateParams);
+$recentOutboundResult = flx_query($conn, $recentOutboundQuery, $dateParams);
 
-$exceptionsInboundResult = $conn->query($exceptionsInboundQuery);
-$exceptionsPickpackResult = $conn->query($exceptionsPickpackQuery);
-$exceptionsOutboundResult = $conn->query($exceptionsOutboundQuery);
+$exceptionsInboundResult = flx_query($conn, $exceptionsInboundQuery, $dateParams);
+$exceptionsPickpackResult = flx_query($conn, $exceptionsPickpackQuery, $dateParams);
+$exceptionsOutboundResult = flx_query($conn, $exceptionsOutboundQuery, $dateParams);
 
-$flowChartResult = $conn->query($flowChartQuery);
-$capacityChartResult = $conn->query($capacityChartQuery);
-$trendChartResult = $conn->query($trendChartQuery);
+$flowChartResult = flx_query($conn, $flowChartQuery, array_merge($dateParams, $dateParams, $dateParams));
+$capacityChartResult = flx_query($conn, $capacityChartQuery, array_merge($dateParams, $dateParams, $dateParams, $dateParams));
+$trendChartResult = flx_query($conn, $trendChartQuery, array_merge($dateParams, $dateParams, $dateParams));
 
 /* valori */
 $inboundTotal = ($inboundTotalResult && $inboundTotalResult->num_rows > 0) ? (int)$inboundTotalResult->fetch_assoc()['total'] : 0;
