@@ -1,0 +1,40 @@
+# Database credentials and environment
+config.php
+.env
+.env.*
+
+# PHP dependencies
+vendor/
+
+# Node (if ever added)
+node_modules/
+
+# Logs and cache
+*.log
+logs/
+cache/
+tmp/
+temp/
+
+# PHP temp/upload files
+*.tmp
+*.cache
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Office lock files (Word/Excel/PowerPoint temp files)
+~$*
+
+# VS Code local settings
+.vscode/settings.json
+.vscode/launch.json
+.vscode/*.code-workspace
+
+# PhpStorm/JetBrains
+.idea/
+
+# WAMP/Apache local overrides
+.htaccess.local

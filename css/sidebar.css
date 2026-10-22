@@ -1,0 +1,345 @@
+/* ========================================
+   SIDEBAR - FOLOSESTE VARIABILE DIN styles.css
+   ======================================== */
+
+/* ========================================
+   BOX SIZING
+   ======================================== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+/* ========================================
+   SIDEBAR PRINCIPAL
+   ======================================== */
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 280px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 18px;
+  z-index: 1000;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--sidebar-border);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--sidebar-active-soft);
+}
+
+/* Sectiune ancorata la baza (Sesiune / Deconectare) */
+.sidebar .sidebar-section-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.sidebar-top {
+  margin-bottom: 18px;
+}
+
+/* ========================================
+   BRAND
+   ======================================== */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: 0.2s ease;
+}
+
+.brand:hover {
+  opacity: 0.9;
+}
+
+.brand-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--sidebar-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.6);  /* logo-ul intern e mai mare in container, fara sa strice patratul */
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: var(--sidebar-text);
+}
+
+.brand-subtitle {
+  font-size: 0.82rem;
+  color: var(--sidebar-muted);
+}
+
+/* ========================================
+   SECTIUNI MENIU
+   ======================================== */
+.sidebar-section {
+  margin-top: 14px;
+}
+
+/* Separator fin intre sectiuni consecutive (nu se aplica primei) */
+.sidebar-section + .sidebar-section:not(.sidebar-section-footer) {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.sidebar-label {
+  display: block;
+  margin: 0 10px 12px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--sidebar-muted);
+}
+
+/* ========================================
+   MENIU
+   ======================================== */
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  margin-bottom: 8px;
+}
+
+.menu-item a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  transition: 0.18s ease;
+  border: 1px solid transparent;
+}
+
+.menu-item a i {
+  font-size: 1.25rem;
+  color: var(--sidebar-icon);
+  flex-shrink: 0;
+}
+
+.menu-item a span {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.menu-item a:hover {
+  background: var(--sidebar-surface);
+  border-color: var(--sidebar-border);
+}
+
+.menu-item.active a {
+  background: var(--sidebar-active-soft);
+  border-color: transparent;
+  color: var(--sidebar-text);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--sidebar-active);
+}
+
+.menu-item.active a span {
+  font-weight: 600;
+}
+
+.menu-item.active a i {
+  color: var(--sidebar-active);
+}
+
+/* Buton Deconectare: accent rosu subtle pe hover */
+.menu-item-danger a:hover {
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+}
+
+.menu-item-danger a:hover i {
+  color: #fca5a5;
+}
+
+
+/* ========================================
+   CARD UTILIZATOR
+   ======================================== */
+.sidebar-user-card {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--sidebar-card);
+  border: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  transition: 0.2s ease;
+}
+
+.sidebar-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  letter-spacing: -0.02em;
+}
+
+.sidebar-user-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-user-greeting {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--sidebar-text);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-user-role {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transition: 0.2s ease;
+}
+
+.role-tura {
+  background: var(--role-tura-bg);
+  color: var(--role-tura-text);
+}
+
+.role-depozit {
+  background: var(--role-depozit-bg);
+  color: var(--role-depozit-text);
+}
+
+.role-manager {
+  background: var(--role-manager-bg);
+  color: var(--role-manager-text);
+}
+
+.role-admin {
+  background: rgba(148, 163, 184, 0.2);   /* slate neutru — semnaleaza system user */
+  color: #cbd5e1;
+}
+
+.role-default {
+  background: var(--sidebar-surface);
+  color: var(--sidebar-text);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 1080px) {
+  .sidebar {
+    width: 92px;
+    padding: 18px 12px;
+  }
+
+  .brand {
+    justify-content: center;
+  }
+
+  .brand-text,
+  .sidebar-label,
+  .menu-item a span {
+    display: none;
+  }
+
+  .menu-item a {
+    justify-content: center;
+    padding: 14px 12px;
+  }
+
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: sticky;
+    width: 100%;
+    height: auto;
+    inset: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--sidebar-border);
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .sidebar-top,
+  .sidebar-section {
+    width: 100%;
+  }
+}
+
+/* ========================================
+   TRANZITIE GLOBALA
+   ======================================== */
+.sidebar,
+.sidebar * {
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
