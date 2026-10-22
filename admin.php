@@ -23,9 +23,11 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $role = trim($_POST['role'] ?? '');
 
     if ($name !== '' && $password !== '' && $role !== '') {
+        // În baza de date se salvează doar hash-ul parolei, niciodată parola în clar
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
         $sql = "INSERT INTO users (name, password, role) VALUES (?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sss", $name, $password, $role);
+        $stmt->bind_param("sss", $name, $passwordHash, $role);
         if ($stmt->execute()) {
             header("Location: admin.php?success=add");
             exit;
@@ -39,10 +41,19 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
-    if ($id > 0 && $name !== '' && $password !== '') {
-        $sql = "UPDATE users SET name = ?, password = ? WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssi", $name, $password, $id);
+    if ($id > 0 && $name !== '') {
+        if ($password !== '') {
+            // Parolă nouă: se salvează hash-ul ei
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+            $sql = "UPDATE users SET name = ?, password = ? WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssi", $name, $passwordHash, $id);
+        } else {
+            // Câmp gol: parola actuală rămâne neschimbată
+            $sql = "UPDATE users SET name = ? WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("si", $name, $id);
+        }
         if ($stmt->execute()) {
             header("Location: admin.php?success=edit");
             exit;
@@ -66,7 +77,7 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Citire utilizatori din DB
 $users = [];
-$sql = "SELECT id, name, password, role FROM users ORDER BY role, name";
+$sql = "SELECT id, name, role FROM users ORDER BY role, name";
 $result = $conn->query($sql);
 
 if ($result) {
@@ -545,7 +556,7 @@ $roleColors = [
                                     <div class="user-card">
                                         <p class="user-name"><?php echo htmlspecialchars($user['name']); ?></p>
                                         <div class="user-actions">
-                                            <button class="user-btn" onclick="openEditModal(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>', '<?php echo htmlspecialchars($user['password']); ?>')">
+                                            <button class="user-btn" onclick="openEditModal(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
                                                 <i class='bx bx-edit-alt'></i>
                                                 Editare
                                             </button>
@@ -618,9 +629,9 @@ $roleColors = [
                 </div>
 
                 <div class="modal-form-group">
-                    <label for="editPassword">Parolă</label>
+                    <label for="editPassword">Parolă nouă</label>
                     <div class="password-wrapper">
-                        <input type="password" id="editPassword" name="password" placeholder="Introdu parolă nouă" required>
+                        <input type="password" id="editPassword" name="password" placeholder="Lasă gol pentru a păstra parola actuală">
                         <button type="button" class="password-toggle" onclick="toggleEditPassword()" tabindex="-1" aria-label="Arată/ascunde parola">
                             <i class="bx bx-show" id="editPasswordIcon"></i>
                         </button>
@@ -645,10 +656,10 @@ $roleColors = [
         }
 
         // Deschide modal editare
-        function openEditModal(id, name, password) {
+        function openEditModal(id, name) {
             document.getElementById('editId').value = id;
             document.getElementById('editName').value = name;
-            document.getElementById('editPassword').value = password;
+            document.getElementById('editPassword').value = '';
             document.getElementById('editPassword').type = 'password';
             document.getElementById('editPasswordIcon').className = 'bx bx-show';
             document.getElementById('editModal').classList.add('open');

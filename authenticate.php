@@ -15,20 +15,21 @@ if ($name === "" || $password === "") {
     exit;
 }
 
-// Verifică utilizatorul și recuperează rolul din DB
-$sql = "SELECT id, role FROM users WHERE name = ? AND password = ?";
+// Caută utilizatorul doar după nume; parola se verifică în PHP, nu în SQL
+$sql = "SELECT id, role, password FROM users WHERE name = ?";
 $stmt = $conn->prepare($sql);
 
 if (!$stmt) {
     die("Eroare SQL: " . $conn->error);
 }
 
-$stmt->bind_param("ss", $name, $password);
+$stmt->bind_param("s", $name);
 $stmt->execute();
 $result = $stmt->get_result();
+$user = ($result->num_rows === 1) ? $result->fetch_assoc() : null;
 
-if ($result->num_rows === 1) {
-    $user = $result->fetch_assoc();
+// password_verify recalculează hash-ul parolei introduse cu salt-ul salvat în hash
+if ($user && password_verify($password, $user['password'])) {
     $role = $user['role'];
     
     // Salvează în sesiune
