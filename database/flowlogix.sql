@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS `users`;
 DROP TABLE IF EXISTS `inbound_orders`;
 DROP TABLE IF EXISTS `pickpack_orders`;
 DROP TABLE IF EXISTS `outbound_orders`;
+DROP TABLE IF EXISTS `simulator_runs`;
 
 CREATE TABLE `users` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -64,6 +65,16 @@ CREATE TABLE `outbound_orders` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_outbound_order_number` (`order_number`),
   KEY `idx_outbound_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One row per simulated hour (jobs/simulate_orders.php). The primary key
+-- guarantees that the same hour is never simulated twice.
+CREATE TABLE `simulator_runs` (
+  `run_hour` DATETIME NOT NULL,
+  `created_orders` INT NOT NULL,
+  `advanced_orders` INT NOT NULL,
+  `ran_at` DATETIME NOT NULL,
+  PRIMARY KEY (`run_hour`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Demo users (password: demo123)

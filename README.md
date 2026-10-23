@@ -23,6 +23,7 @@ Each page checks the role saved in the session. A user who opens a page that bel
 
 - A dashboard for each role, with a period filter: today, last 7 days, last 30 days, current month
 - Overdue and blocked items are calculated from the dates (`expected_finished_date`, `planned_date`), so there is no separate alerts table to keep in sync
+- An hourly order simulator that keeps the demo data moving (see [Order simulator](#order-simulator))
 - CSV exports and printable reports
 - Charts with Chart.js
 - Five color themes, saved in the browser
@@ -82,6 +83,12 @@ erDiagram
         datetime created_at
         datetime finished_at
     }
+    simulator_runs {
+        datetime run_hour PK
+        int created_orders
+        int advanced_orders
+        datetime ran_at
+    }
 ```
 
 Each flow has its own table. An order counts as **finished** when `finished_at` is set. It counts as **overdue** when it is not finished and its expected date (`expected_finished_date` or `planned_date`) has passed. `created_at` is indexed, because every period filter uses it.
@@ -97,6 +104,27 @@ Demo accounts: `admin`, `manager`, `depozit`, `tura`. The password for all of th
 
 The demo data contains about 1,500 orders over four months. On import, the dates are moved forward so that the most recent day of activity is the day you import the file.
 
+## Order simulator
+
+There is no real warehouse system behind the demo, so `jobs/simulate_orders.php` plays that role. It is meant to run once an hour, between 06:00 and 22:00. Each run:
+
+1. creates a few new orders in each flow (receptions, pick & pack orders, shipments);
+2. moves open orders from the last two days forward: some are finished, some get an operator, and shipments that miss their planned time become delayed.
+
+Everything in one run happens inside a single transaction, so an hour is either simulated completely or not at all. The table `simulator_runs` uses the hour as its primary key, so the database refuses to simulate the same hour twice, even if the job starts twice.
+
+Run it by hand (`--force` also works outside working hours):
+
+```
+php jobs/simulate_orders.php --force
+```
+
+To run it every hour on Windows, create a task in Task Scheduler that starts `C:\wamp64\bin\php\php8.2.29\php.exe` with the argument `C:\wamp64\www\flowlogix\jobs\simulate_orders.php`. On a Linux server, a cron line does the same job:
+
+```
+0 * * * * php /var/www/flowlogix/jobs/simulate_orders.php
+```
+
 ## Project structure
 
 | Path | Purpose |
@@ -108,6 +136,7 @@ The demo data contains about 1,500 orders over four months. On import, the dates
 | `admin.php` | User management |
 | `flow_helpers.php` | Shared functions: period filters, the `flx_query()` helper for prepared statements, status rules |
 | `database/` | Schema with demo data, and the password migration script |
+| `jobs/simulate_orders.php` | Hourly order simulator |
 
 ## Improvements after the thesis
 
