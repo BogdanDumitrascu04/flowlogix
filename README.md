@@ -1,5 +1,7 @@
 # FlowLogix
 
+[![CI/CD](https://github.com/BogdanDumitrascu04/flowlogix/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/BogdanDumitrascu04/flowlogix/actions/workflows/ci-cd.yml)
+
 A role-based dashboard for warehouse operations, built with PHP and MySQL.
 
 In a warehouse, goods move through three flows: **inbound** (receiving), **pick & pack** (preparing orders) and **outbound** (shipping). Each person in the team needs a different view of these flows. A shift supervisor wants to see what is blocked right now, and a logistics manager wants to see how many operations were finished on time this month. FlowLogix shows each role the numbers and delays it needs.
@@ -135,6 +137,7 @@ The live demo runs on a small Azure virtual machine with Ubuntu 24.04, Apache, P
 - MySQL uses a separate user that can only access the `flowlogix` database
 - cron runs the order simulator every hour and reloads the demo database every night at 03:15
 - HTTPS uses a free Let's Encrypt certificate that renews automatically
+- every push to `main` runs a GitHub Actions pipeline (`.github/workflows/ci-cd.yml`): it loads the demo data into a fresh MySQL 8 database, runs the order simulator and opens every page as each role (`tests/render_pages.sh`). Only if all of that passes does it update the server, using an SSH key that can run nothing except `deploy/flowlogix-deploy.sh`
 
 Moving from WampServer to a standard MySQL server exposed two old bugs: a `GROUP BY` that only worked because WampServer's MySQL is permissive (`ONLY_FULL_GROUP_BY` is off there), and a byte order mark at the start of three PHP files. Both are fixed.
 
@@ -150,6 +153,8 @@ Moving from WampServer to a standard MySQL server exposed two old bugs: a `GROUP
 | `flow_helpers.php` | Shared functions: period filters, the `flx_query()` helper for prepared statements, status rules |
 | `database/` | Schema with demo data, and the password migration script |
 | `jobs/simulate_orders.php` | Hourly order simulator |
+| `tests/render_pages.sh` | Opens every page, period and export as each role and fails on any PHP error |
+| `.github/workflows/ci-cd.yml`, `deploy/` | Automatic tests and deployment to the live server |
 
 ## Improvements after the thesis
 

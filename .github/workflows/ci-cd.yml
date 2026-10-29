@@ -1,0 +1,77 @@
+# CI/CD for FlowLogix
+#   test:   on every push and pull request, builds a fresh database from the demo
+#           data, runs the order simulator and opens every page as each role
+#   deploy: only after the tests pass on main, updates the live server on Azure
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      # Standard MySQL 8 with its default strict sql_mode (including ONLY_FULL_GROUP_BY)
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-only-password
+          MYSQL_DATABASE: flowlogix
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pci-only-password"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mysqli, mbstring
+
+      - name: Check PHP syntax
+        run: find . -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Load the demo database
+        run: mysql -h 127.0.0.1 -uroot -pci-only-password flowlogix < database/flowlogix.sql
+
+      - name: Create config.php for the test database
+        run: |
+          cp config.example.php config.php
+          sed -i 's/^\$host = "localhost";/$host = "127.0.0.1";/' config.php
+          sed -i 's/^\$password = "";/$password = "ci-only-password";/' config.php
+
+      - name: Run the order simulator twice (the second run must be refused)
+        run: |
+          php jobs/simulate_orders.php --force
+          php jobs/simulate_orders.php --force | grep "deja simulată"
+
+      - name: Open every page as each role
+        run: bash tests/render_pages.sh
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency: production
+
+    steps:
+      - name: Update the live server
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Public host key of the server, so the connection cannot be redirected elsewhere
+          echo "flowlogix.polandcentral.cloudapp.azure.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICmG7wEsW8o4doA55YQlPsCW8lCpK7e8kao90Js7G0YA" > ~/.ssh/known_hosts
+          # On the server this key can only run deploy/flowlogix-deploy.sh (forced command)
+          ssh -i ~/.ssh/deploy_key azureuser@flowlogix.polandcentral.cloudapp.azure.com

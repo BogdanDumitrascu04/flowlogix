@@ -1,0 +1,9 @@
+# Installed on the server as /etc/cron.d/flowlogix
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Every hour at :05 - simulate one hour of warehouse work (the script itself skips 22:00-06:00)
+5 * * * * www-data php /var/www/flowlogix/jobs/simulate_orders.php >> /var/log/flowlogix/simulator.log 2>&1
+
+# Every night at 03:15 - reload the demo database, so changes made by visitors do not pile up
+15 3 * * * root mysql flowlogix < /var/www/flowlogix/database/flowlogix.sql >> /var/log/flowlogix/reset.log 2>&1 && echo "$(date '+\%F \%T') demo reset" >> /var/log/flowlogix/reset.log
