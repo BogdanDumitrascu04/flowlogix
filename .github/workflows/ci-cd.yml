@@ -37,8 +37,11 @@ jobs:
           php-version: '8.3'
           extensions: mysqli, mbstring
 
+      - name: Install PHP dependencies (Anthropic SDK)
+        run: composer install --no-interaction --no-progress
+
       - name: Check PHP syntax
-        run: find . -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l > /dev/null
 
       - name: Load the demo database
         run: mysql -h 127.0.0.1 -uroot -pci-only-password flowlogix < database/flowlogix.sql
@@ -53,6 +56,15 @@ jobs:
         run: |
           php jobs/simulate_orders.php --force
           php jobs/simulate_orders.php --force | grep "deja simulată"
+
+      - name: Run the AI summary job without an API key (must skip cleanly)
+        run: php jobs/daily_summary.php | grep "Lipsește cheia API"
+
+      - name: Add a sample AI summary, so the dashboard card is rendered too
+        run: >-
+          mysql -h 127.0.0.1 -uroot -pci-only-password flowlogix -e
+          "INSERT INTO daily_summaries (generated_at, summary, model, input_tokens, output_tokens)
+          VALUES (NOW(), 'Rezumat de test.', 'test', 0, 0)"
 
       - name: Open every page as each role
         run: bash tests/render_pages.sh

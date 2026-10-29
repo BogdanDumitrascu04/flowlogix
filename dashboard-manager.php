@@ -235,6 +235,16 @@ ORDER BY days_overdue DESC
 LIMIT 10
 ";
 $delayedResult = flx_query($conn, $delayedQuery, array_merge($dateParams, $dateParams, $dateParams));
+
+/* Rezumatul zilei, scris de jobs/daily_summary.php (Claude Haiku pe baza cifrelor din SQL) */
+$aiSummary = null;
+try {
+    $summaryResult = $conn->query("SELECT summary, generated_at FROM daily_summaries ORDER BY generated_at DESC LIMIT 1");
+    $aiSummary = $summaryResult ? $summaryResult->fetch_assoc() : null;
+} catch (mysqli_sql_exception $e) {
+    // Tabelul lipsește într-o bază importată înainte de această funcție; pagina merge și fără rezumat
+    $aiSummary = null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -249,6 +259,10 @@ $delayedResult = flx_query($conn, $delayedQuery, array_merge($dateParams, $dateP
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="js/app.js?v=<?php echo time(); ?>" defer></script>
   <style>
+    .ai-summary-card { margin-bottom: 24px; border-left: 4px solid #8b5cf6; }
+    .ai-summary-card h3 { display: flex; align-items: center; gap: 8px; }
+    .ai-summary-text { margin: 0; line-height: 1.6; font-size: 15px; }
+
     .kpi-grid, .cards-grid { overflow: visible; }
     .kpi-card { position: relative; overflow: visible; }
     .kpi-top { position: relative; }
@@ -445,6 +459,19 @@ $delayedResult = flx_query($conn, $delayedQuery, array_merge($dateParams, $dateP
         </div>
 
       </div>
+
+      <?php if ($aiSummary): ?>
+      <!-- Rezumatul zilei (AI) -->
+      <div class="card ai-summary-card">
+        <div class="card-header">
+          <div class="card-title-wrap">
+            <h3><i class='bx bx-bot'></i> Rezumatul zilei</h3>
+            <p>Scris de AI (Claude Haiku) din cifrele bazei de date · <?php echo date('d.m.Y, H:i', strtotime($aiSummary['generated_at'])); ?></p>
+          </div>
+        </div>
+        <p class="ai-summary-text"><?php echo nl2br(htmlspecialchars($aiSummary['summary'])); ?></p>
+      </div>
+      <?php endif; ?>
 
       <!-- Interpretare + Acțiuni -->
       <div class="cards-grid two-col">

@@ -77,6 +77,19 @@ CREATE TABLE `simulator_runs` (
   PRIMARY KEY (`run_hour`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Summaries written by jobs/daily_summary.php (Claude Haiku). Not dropped above:
+-- they survive the nightly reload of the demo data, so the dashboard keeps the latest one.
+CREATE TABLE IF NOT EXISTS `daily_summaries` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `generated_at` DATETIME NOT NULL,
+  `summary` TEXT NOT NULL,
+  `model` VARCHAR(50) NOT NULL,
+  `input_tokens` INT NOT NULL,
+  `output_tokens` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_summaries_generated_at` (`generated_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Demo users (password: demo123)
 INSERT INTO `users` (`name`, `password`, `role`) VALUES
 ('admin', '$2y$10$WB0.N600xa7p8eDAJ3rqmOL7dnWwfEwP7zttDADdHPlufzYf0T5fy', 'admin'),

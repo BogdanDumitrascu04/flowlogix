@@ -13,4 +13,9 @@ git_www() {
 
 git_www fetch --quiet origin main
 git_www reset --quiet --hard origin/main
+
+# PHP dependencies (Anthropic SDK), exactly the versions in composer.lock
+sudo -u www-data env COMPOSER_HOME=/var/www/.composer \
+    composer install --working-dir="$APP_DIR" --no-dev --no-interaction --no-progress --quiet
+
 echo "Deployed: $(git_www log --oneline -1)"

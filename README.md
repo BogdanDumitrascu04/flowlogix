@@ -28,6 +28,7 @@ Each page checks the role saved in the session. A user who opens a page that bel
 - A dashboard for each role, with a period filter: today, last 7 days, last 30 days, current month
 - Overdue and blocked items are calculated from the dates (`expected_finished_date`, `planned_date`), so there is no separate alerts table to keep in sync
 - An hourly order simulator that keeps the demo data moving (see [Order simulator](#order-simulator))
+- A short AI summary of the day on the manager dashboard, written by Claude Haiku from figures that SQL calculates (see [AI summary](#ai-summary))
 - CSV exports and printable reports
 - Charts with Chart.js
 - Five color themes, saved in the browser
@@ -93,6 +94,14 @@ erDiagram
         int advanced_orders
         datetime ran_at
     }
+    daily_summaries {
+        int id PK
+        datetime generated_at
+        text summary
+        varchar model
+        int input_tokens
+        int output_tokens
+    }
 ```
 
 Each flow has its own table. An order counts as **finished** when `finished_at` is set. It counts as **overdue** when it is not finished and its expected date (`expected_finished_date` or `planned_date`) has passed. `created_at` is indexed, because every period filter uses it.
@@ -129,6 +138,18 @@ To run it every hour on Windows, create a task in Task Scheduler that starts `C:
 0 * * * * php /var/www/flowlogix/jobs/simulate_orders.php
 ```
 
+## AI summary
+
+`jobs/daily_summary.php` writes a two or three sentence summary of the day for the logistics manager. It runs five times a day (09:15 to 21:15, every three hours):
+
+1. MySQL calculates the figures of the day: receptions, pick & pack orders, shipments on time and late, and the destinations with most delays.
+2. Only these aggregated figures (no names, no order details) are sent to Claude Haiku 5.5 through the official Anthropic PHP SDK, with an instruction to use only the given numbers.
+3. The text is saved in `daily_summaries`, and the manager dashboard shows the latest one, labelled as written by AI.
+
+The model never calculates anything: the numbers come from SQL, and the model only puts them into words. If the API key is missing or the call fails, nothing is saved and the dashboard keeps the previous summary. The key lives only in the server's `config.php`. Each run costs a fraction of a cent.
+
+To try it locally, run `composer install` (the web pages do not need it), add `$anthropicApiKey = 'sk-ant-...';` to `config.php`, and run `php jobs/daily_summary.php`.
+
 ## Deployment
 
 The live demo runs on a small Azure virtual machine with Ubuntu 24.04, Apache, PHP 8.3 and MySQL 8:
@@ -154,6 +175,7 @@ Moving from WampServer to a standard MySQL server exposed two old bugs: a `GROUP
 | `flow_helpers.php` | Shared functions: period filters, the `flx_query()` helper for prepared statements, status rules |
 | `database/` | Schema with demo data, and the password migration script |
 | `jobs/simulate_orders.php` | Hourly order simulator |
+| `jobs/daily_summary.php` | AI summary of the day (Claude Haiku, Anthropic PHP SDK) |
 | `tests/render_pages.sh` | Opens every page, period and export as each role and fails on any PHP error |
 | `.github/workflows/ci-cd.yml`, `deploy/` | Automatic tests and deployment to the live server |
 
