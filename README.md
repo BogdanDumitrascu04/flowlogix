@@ -6,6 +6,8 @@ In a warehouse, goods move through three flows: **inbound** (receiving), **pick 
 
 This was my bachelor's thesis project (Business Informatics, Faculty of Economics and Business Administration, West University of Timișoara, 2026). The interface is in Romanian.
 
+**Live demo:** https://flowlogix.polandcentral.cloudapp.azure.com. Log in as `manager`, `depozit`, `tura` or `admin`, with the password `demo123`. New orders arrive every hour, and the demo database is reset every night.
+
 ![Logistics manager dashboard](docs/screenshots/manager-dashboard.png)
 
 ## Roles
@@ -124,6 +126,17 @@ To run it every hour on Windows, create a task in Task Scheduler that starts `C:
 ```
 0 * * * * php /var/www/flowlogix/jobs/simulate_orders.php
 ```
+
+## Deployment
+
+The live demo runs on a small Azure virtual machine with Ubuntu 24.04, Apache, PHP 8.3 and MySQL 8:
+
+- the app is cloned from this repository into `/var/www/flowlogix`; the `database/` and `jobs/` folders cannot be opened from the browser
+- MySQL uses a separate user that can only access the `flowlogix` database
+- cron runs the order simulator every hour and reloads the demo database every night at 03:15
+- HTTPS uses a free Let's Encrypt certificate that renews automatically
+
+Moving from WampServer to a standard MySQL server exposed two old bugs: a `GROUP BY` that only worked because WampServer's MySQL is permissive (`ONLY_FULL_GROUP_BY` is off there), and a byte order mark at the start of three PHP files. Both are fixed.
 
 ## Project structure
 
