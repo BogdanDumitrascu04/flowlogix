@@ -49,8 +49,26 @@ function isActive($pageName, $currentPage) {
   return $pageName === $currentPage ? 'active' : '';
 }
 ?>
-<nav class="sidebar">
+<!-- Bara de sus pe telefon și tabletă: butonul deschide meniul lateral (js/sidebar.js) -->
+<header class="mobile-topbar">
+  <button type="button" class="menu-toggle" id="menuToggle" aria-label="Deschide meniul" aria-controls="appSidebar" aria-expanded="false">
+    <i class='bx bx-menu'></i>
+  </button>
+  <span class="mobile-brand">
+    <span class="brand-logo"><img src="FlowLogix.png" alt=""></span>
+    <span class="brand-title">FlowLogix</span>
+  </span>
+  <span class="sidebar-user-avatar role-<?php echo htmlspecialchars($roleKey); ?>">
+    <?php echo strtoupper(mb_substr($displayName, 0, 1)); ?>
+  </span>
+</header>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<nav class="sidebar" id="appSidebar">
   <div class="sidebar-top">
+    <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Închide meniul">
+      <i class='bx bx-x'></i>
+    </button>
     <a href="index.php" class="brand">
       <div class="brand-logo">
         <img src="FlowLogix.png" alt="FlowLogix logo">
@@ -289,3 +307,4 @@ function isActive($pageName, $currentPage) {
   </div>
 
 </nav>
+<script src="js/sidebar.js?v=1" defer></script>
