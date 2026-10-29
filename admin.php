@@ -400,9 +400,21 @@ $roleColors = [
 
         @media (max-width: 768px) {
             .admin-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
                 gap: 20px;
                 margin-top: 16px;
+            }
+
+            /* Butonul trece sub text, altfel nu încape lângă el pe telefon */
+            .demo-card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+                padding: 18px;
+            }
+
+            .demo-btn {
+                justify-content: center;
             }
         }
 

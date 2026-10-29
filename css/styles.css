@@ -378,6 +378,7 @@ a {
   align-items: center;
   gap: 8px;
   font-weight: 600;
+  text-decoration: none;
 }
 
 .control-button:hover {
@@ -1196,13 +1197,17 @@ tr:hover {
   }
 
   .cards-grid.kpi-grid,
-  .status-strip,
+  .status-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* minmax(0, 1fr), nu 1fr: altfel un tabel lat împinge coloana peste marginea ecranului */
   .alert-grid,
   .cards-grid.two-col,
   .cards-grid.three-col,
   .settings-grid,
   .report-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .theme-preview-grid {
@@ -1210,12 +1215,24 @@ tr:hover {
   }
 }
 
-@media (max-width: 768px) {
+/* Telefon și tabletă: sidebar-ul e ascuns (css/sidebar.css), conținutul ia toată lățimea */
+@media (max-width: 900px) {
   .main {
     margin-left: 0;
-    padding: 16px;
+    padding: 20px;
   }
 
+  /* Ancorele din meniu nu ajung sub bara de sus fixă */
+  html {
+    scroll-padding-top: 76px;
+  }
+
+  th {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 768px) {
   .topbar {
     flex-direction: column;
   }
@@ -1269,6 +1286,93 @@ tr:hover {
   .profile-item {
     padding: 16px;
   }
+
+  .module-nav-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Telefon */
+@media (max-width: 560px) {
+  .main {
+    padding: 14px 12px;
+  }
+
+  .page-shell {
+    gap: 14px;
+  }
+
+  .topbar {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .topbar-left h1 {
+    font-size: 1.35rem;
+  }
+
+  .topbar-left p {
+    font-size: 0.9rem;
+  }
+
+  .card {
+    padding: 16px 14px;
+  }
+
+  .cards-grid {
+    gap: 12px;
+  }
+
+  /* KPI pe două coloane: iconița trece deasupra etichetei, ca textul să aibă toată lățimea cardului */
+  .kpi-card {
+    padding: 14px 10px;
+  }
+
+  .kpi-top {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .kpi-icon {
+    order: -1;
+    width: 38px;
+    height: 38px;
+    font-size: 1.15rem;
+    /* marginile umplu restul rândului, deci eticheta coboară dedesubt */
+    margin: 0 calc((100% - 38px) / 2);
+  }
+
+  .kpi-top .label {
+    font-size: 0.82rem;
+    line-height: 1.3;
+  }
+
+  .kpi-value {
+    font-size: 1.5rem;
+  }
+
+  .status-strip {
+    gap: 10px;
+  }
+
+  .status-pill {
+    padding: 12px 14px;
+  }
+
+  th,
+  td {
+    padding: 10px;
+    font-size: 0.88rem;
+  }
+}
+
+/* Tabelele lungi se derulează în containerul lor, nu lărgesc pagina */
+.table-wrap,
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ===== LOGIN PAGE LAYOUT ===== */
@@ -1677,6 +1781,6 @@ tr:hover {
 
 @media (max-width: 992px) {
   .monitoring-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }

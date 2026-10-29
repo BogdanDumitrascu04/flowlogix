@@ -359,6 +359,24 @@ try {
       transform: translateX(0) translateY(0);
     }
 
+    /* Pe două coloane panoul se lipește de marginea exterioară a cardului, ca să nu iasă din ecran */
+    @media (max-width: 1080px) {
+      .kpi-grid .kpi-card:nth-child(odd) .kpi-info-panel {
+        left: 0;
+        right: auto;
+        transform: translateY(-6px);
+      }
+      .kpi-grid .kpi-card:nth-child(even) .kpi-info-panel {
+        left: auto;
+        right: 0;
+        transform: translateY(-6px);
+      }
+      .kpi-grid .kpi-card .kpi-info-btn:hover + .kpi-info-panel,
+      .kpi-grid .kpi-card .kpi-info-btn:focus + .kpi-info-panel {
+        transform: translateY(0);
+      }
+    }
+
     [data-page="dashboard-manager"] .page-shell { padding-top: 10px; }
   </style>
 </head>
