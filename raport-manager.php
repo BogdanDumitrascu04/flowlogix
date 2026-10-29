@@ -402,6 +402,19 @@ $generatedAt = date('d.m.Y H:i');
       border-radius: 6px;
     }
 
+    /* Telefon: raportul se citește pe ecran îngust; la printare rămâne pe A4 */
+    @media screen and (max-width: 640px) {
+      body { padding: 12px; }
+      .page { padding: 20px 16px; }
+      .report-header { flex-direction: column; gap: 12px; }
+      .report-meta { text-align: left; line-height: 1.6; }
+      .kpi-grid,
+      .interp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .kpi-box .kpi-num { font-size: 28px; }
+      .table-scroll { overflow-x: auto; }
+      th, td { white-space: nowrap; }
+    }
+
     @media print {
       body { background: #fff !important; padding: 0 !important; }
       .print-actions { display: none !important; }
@@ -500,7 +513,7 @@ $generatedAt = date('d.m.Y H:i');
     <!-- Secțiunea 3: Performanță pe fluxuri -->
     <div class="section">
       <div class="section-title">Performanță pe fluxuri</div>
-      <table>
+      <div class="table-scroll"><table>
         <thead>
           <tr>
             <th>Flux</th>
@@ -579,14 +592,14 @@ $generatedAt = date('d.m.Y H:i');
             </td>
           </tr>
         </tfoot>
-      </table>
+      </table></div>
     </div>
 
     <!-- Secțiunea 4: Situații întârziate -->
     <div class="section">
       <div class="section-title">Situații întârziate (top 10)</div>
       <?php if ($delayedResult && $delayedResult->num_rows > 0): ?>
-        <table>
+        <div class="table-scroll"><table>
           <thead>
             <tr>
               <th>Flux</th>
@@ -616,7 +629,7 @@ $generatedAt = date('d.m.Y H:i');
               </tr>
             <?php endwhile; ?>
           </tbody>
-        </table>
+        </table></div>
       <?php else: ?>
         <p class="no-data">Nu există situații întârziate pentru perioada selectată.</p>
       <?php endif; ?>
