@@ -190,15 +190,25 @@ if ($demoEnabled) {
       color: #dc2626;
     }
 
+    /* ── Page shell: the top bar sits above the cards and scrolls with the page ── */
+    .login-shell {
+      width: 100%;
+      max-width: 1196px;
+      display: flex;
+      flex-direction: column;
+    }
+
     /* ── Top-right bar: language switch + source code ── */
     .login-topbar {
-      position: fixed;
-      top: 18px;
-      right: 22px;
       display: flex;
+      justify-content: flex-end;
       align-items: center;
       gap: 10px;
-      z-index: 10;
+      padding: 24px 24px 0;
+    }
+
+    .login-topbar + .login-container {
+      padding-top: 14px;
     }
 
     .lang-switch {
@@ -294,14 +304,13 @@ if ($demoEnabled) {
         min-height: auto;
       }
       .login-topbar {
-        position: static;
-        justify-content: flex-end;
         padding: 12px 16px 0;
       }
     }
   </style>
 </head>
 <body class="login-body">
+  <div class="login-shell">
 
   <?php if ($demoEnabled): ?>
   <div class="login-topbar">
@@ -453,6 +462,8 @@ if ($demoEnabled) {
         </div>
       </div>
     </div>
+  </div>
+
   </div>
 
   <script>
