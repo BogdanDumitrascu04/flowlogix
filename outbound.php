@@ -140,11 +140,11 @@ $statusChartQuery = "
       WHEN finished_at IS NULL THEN 'not_shipped'
       WHEN DATE(finished_at) <= DATE(planned_date) THEN 'shipped_on_time'
       ELSE 'shipped_late'
-    END AS status,
+    END AS derived_status,
     COUNT(*) AS total
   FROM outbound_orders
   WHERE $dateCondition
-  GROUP BY status
+  GROUP BY derived_status
 ";
 
 /* grafic întârzieri pe destinații */
@@ -191,7 +191,7 @@ $statusData = [];
 
 if ($statusChartResult && $statusChartResult->num_rows > 0) {
   while ($row = $statusChartResult->fetch_assoc()) {
-    $statusLabels[] = translateOutboundStatus($row['status']);
+    $statusLabels[] = translateOutboundStatus($row['derived_status']);
     $statusData[] = (int)$row['total'];
   }
 }
