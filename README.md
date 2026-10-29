@@ -8,7 +8,7 @@ In a warehouse, goods move through three flows: **inbound** (receiving), **pick 
 
 This was my bachelor's thesis project (Business Informatics, Faculty of Economics and Business Administration, West University of Timișoara, 2026). The interface is in Romanian.
 
-**Live demo:** https://flowlogix.polandcentral.cloudapp.azure.com. Log in as `manager`, `depozit`, `tura` or `admin`, with the password `demo123`. New orders arrive every hour, and the demo database is reset every night.
+**Live demo:** https://flowlogix.polandcentral.cloudapp.azure.com. Pick a role in the *Demo live* panel to enter with one click, or log in as `manager`, `depozit`, `tura` or `admin` with the password `demo123`. New orders arrive every hour, and the demo database is reset every night.
 
 ![Logistics manager dashboard](docs/screenshots/manager-dashboard.png)
 
@@ -135,6 +135,7 @@ The live demo runs on a small Azure virtual machine with Ubuntu 24.04, Apache, P
 
 - the app is cloned from this repository into `/var/www/flowlogix`; the `database/` and `jobs/` folders cannot be opened from the browser
 - MySQL uses a separate user that can only access the `flowlogix` database
+- `config.php` on the server sets `$demoMode = true`: the login page shows one-click entry per role (`demo_login.php`), and the user administration page is read-only, so one visitor cannot break the demo for the others. A local install keeps `$demoMode = false`
 - cron runs the order simulator every hour and reloads the demo database every night at 03:15
 - HTTPS uses a free Let's Encrypt certificate that renews automatically
 - every push to `main` runs a GitHub Actions pipeline (`.github/workflows/ci-cd.yml`): it loads the demo data into a fresh MySQL 8 database, runs the order simulator and opens every page as each role (`tests/render_pages.sh`). Only if all of that passes does it update the server, using an SSH key that can run nothing except `deploy/flowlogix-deploy.sh`

@@ -64,6 +64,7 @@ for period in all today 7d 30d month; do
     done
 done
 
+check guest login.php ""
 check admin admin.php ""
 check admin add_today_demo.php ""
 check manager setari.php ""

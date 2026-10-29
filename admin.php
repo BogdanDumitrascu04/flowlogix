@@ -16,6 +16,12 @@ if ($_SESSION['role'] !== 'admin') {
 // Procesare CRUD
 $action = $_REQUEST['action'] ?? '';
 
+// În demo-ul public (config.php: $demoMode = true) utilizatorii pot fi văzuți, dar nu modificați
+if (!empty($demoMode) && in_array($action, ['add', 'edit', 'delete'], true)) {
+    header("Location: admin.php?demo=readonly");
+    exit;
+}
+
 // ADĂUGARE utilizator
 if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
@@ -358,6 +364,17 @@ $roleColors = [
             filter: brightness(0.95);
         }
 
+        .demo-readonly-note {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--warning-soft, #fff7ed);
+            border: 1px solid var(--warning, #f59e0b);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+
         .success-message {
             background: var(--success-soft);
             border: 1px solid var(--success);
@@ -515,6 +532,17 @@ $roleColors = [
                 <i class='bx bx-check-circle'></i>
                 <span id="successText">Operație realizată cu succes.</span>
             </div>
+
+            <?php if (!empty($demoMode)): ?>
+            <div class="demo-readonly-note">
+                <i class='bx bx-lock-alt'></i>
+                <span>
+                    <?php echo isset($_GET['demo']) ? 'Modificarea nu a fost salvată. ' : ''; ?>
+                    Demo public: utilizatorii pot fi văzuți, dar adăugarea, editarea și ștergerea sunt dezactivate.
+                    <em>(Public demo: users are read-only.)</em>
+                </span>
+            </div>
+            <?php endif; ?>
 
             <?php if ($_SESSION['role'] === 'admin'): ?>
             <div class="demo-section">

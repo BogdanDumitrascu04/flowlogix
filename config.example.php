@@ -9,6 +9,10 @@ $dbname = "flowlogix";
 $username = "root";
 $password = "";
 
+// true doar pe serverul demo public: pagina de login arată intrarea cu un click pe rol,
+// iar utilizatorii din pagina de administrare nu pot fi modificați
+$demoMode = false;
+
 $conn = new mysqli($host, $username, $password, $dbname);
 
 if ($conn->connect_error) {

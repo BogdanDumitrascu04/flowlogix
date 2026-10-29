@@ -1,3 +1,8 @@
+<?php
+// Pe serverul live, config.php are $demoMode = true și pagina arată intrarea rapidă pe rol
+require_once 'config.php';
+$demoEnabled = !empty($demoMode);
+?>
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -104,6 +109,94 @@
       color: #7c3aed;
     }
 
+    /* ── Public demo: one-click entry per role ───────── */
+    .demo-panel {
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 20px;
+      background: #f8fafc;
+    }
+
+    .demo-panel h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      margin: 0 0 6px;
+    }
+
+    .demo-panel p {
+      font-size: 13px;
+      color: #475569;
+      margin: 0 0 12px;
+      line-height: 1.45;
+    }
+
+    .demo-panel p em {
+      display: block;
+      color: #64748b;
+    }
+
+    .demo-roles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .demo-role-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .demo-role-btn strong {
+      font-size: 13px;
+      color: #0f172a;
+    }
+
+    .demo-role-btn span {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .demo-role-btn:hover {
+      border-color: #94a3b8;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    }
+
+    .demo-role-btn[value="tura"] { box-shadow: inset 3px 0 0 #f97316; }
+    .demo-role-btn[value="depozit"] { box-shadow: inset 3px 0 0 #3b82f6; }
+    .demo-role-btn[value="manager"] { box-shadow: inset 3px 0 0 #8b5cf6; }
+    .demo-role-btn[value="admin"] { box-shadow: inset 3px 0 0 #ef4444; }
+
+    .demo-panel-footer {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 10px;
+    }
+
+    .demo-panel-footer a {
+      color: #2563eb;
+    }
+
+    .demo-divider {
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 4px 0 16px;
+    }
+
     /* ── Input wrap: allow focus ring to paint outside ── */
     .input-wrap {
       overflow: visible;
@@ -186,6 +279,39 @@
           <h2>Autentificare</h2>
           <p>Conectează-te pentru a accesa dashboard-ul FlowLogix.</p>
         </div>
+
+        <?php if ($demoEnabled): ?>
+          <div class="demo-panel">
+            <h3><i class='bx bx-play-circle'></i> Demo live</h3>
+            <p>
+              Aplicația rulează cu date demo, actualizate la fiecare oră. Alege un rol pentru a intra.
+              <em>Live demo with sample data that updates every hour. Pick a role to look around.</em>
+            </p>
+            <form action="demo_login.php" method="POST" class="demo-roles">
+              <button type="submit" name="role" value="manager" class="demo-role-btn">
+                <strong>Manager logistic</strong>
+                <span>Logistics manager</span>
+              </button>
+              <button type="submit" name="role" value="depozit" class="demo-role-btn">
+                <strong>Șef de depozit</strong>
+                <span>Warehouse manager</span>
+              </button>
+              <button type="submit" name="role" value="tura" class="demo-role-btn">
+                <strong>Șef de tură</strong>
+                <span>Shift supervisor</span>
+              </button>
+              <button type="submit" name="role" value="admin" class="demo-role-btn">
+                <strong>Administrator</strong>
+                <span>Admin (read-only)</span>
+              </button>
+            </form>
+            <div class="demo-panel-footer">
+              Datele se resetează în fiecare noapte · Data resets every night ·
+              <a href="https://github.com/BogdanDumitrascu04/flowlogix" target="_blank" rel="noopener">Cod sursă / Source code</a>
+            </div>
+          </div>
+          <div class="demo-divider">sau autentifică-te cu un cont · or sign in</div>
+        <?php endif; ?>
 
         <?php if (isset($_GET['error'])): ?>
           <div class="login-alert login-alert-error">
