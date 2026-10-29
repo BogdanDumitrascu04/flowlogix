@@ -1,7 +1,17 @@
 <?php
-// Pe serverul live, config.php are $demoMode = true și pagina arată intrarea rapidă pe rol
+// Pe serverul live, config.php are $demoMode = true: cardurile de rol devin intrare directă în demo
 require_once 'config.php';
 $demoEnabled = !empty($demoMode);
+
+// Rolurile prezentate pe pagină; în demo, fiecare card e un buton care deschide dashboard-ul rolului
+$loginRoles = [
+    'tura'    => ['icon' => 'bx-time-five',   'name' => 'Șef de tură',      'desc' => 'Monitorizare activă și intervenții rapide'],
+    'depozit' => ['icon' => 'bx-buildings',   'name' => 'Șef de depozit',   'desc' => 'Coordonarea fluxurilor și rapoarte operaționale'],
+    'manager' => ['icon' => 'bx-line-chart',  'name' => 'Manager logistic', 'desc' => 'Performanță generală și decizii bazate pe date'],
+];
+if ($demoEnabled) {
+    $loginRoles['admin'] = ['icon' => 'bx-shield-quarter', 'name' => 'Administrator', 'desc' => 'Utilizatori și roluri (doar citire în demo)'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -34,6 +44,11 @@ $demoEnabled = !empty($demoMode);
       flex: 1;
       display: flex;
       flex-direction: column;
+    }
+
+    .login-brand-content h2 {
+      font-size: 26px;
+      line-height: 1.25;
     }
 
     /* ── Logo: bare image, no decorative container ────── */
@@ -76,6 +91,61 @@ $demoEnabled = !empty($demoMode);
       gap: 14px;
     }
 
+    /* Demo: the role cards are the buttons that open each role's dashboard */
+    .demo-hint {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin: 0 0 10px;
+    }
+
+    button.role-preview-card {
+      width: 100%;
+      align-items: center;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      background: #ffffff;
+    }
+
+    button.role-preview-card:hover,
+    button.role-preview-card:focus-visible {
+      border-color: #94a3b8;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+      outline: none;
+    }
+
+    .role-card-text {
+      flex: 1;
+    }
+
+    .role-card-enter {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #2563eb;
+      white-space: nowrap;
+    }
+
+    .role-preview-card .role-card-enter span {
+      display: inline;
+      font-size: 12px;
+      color: #2563eb;
+    }
+
+    .role-card-enter i {
+      font-size: 18px;
+      color: #2563eb;
+      transition: transform 0.15s;
+    }
+
+    button.role-preview-card:hover .role-card-enter i {
+      transform: translateX(3px);
+    }
+
     /* Tura — warm orange */
     .role-preview-card[data-role="tura"] {
       box-shadow: inset 3px 0 0 #f97316;
@@ -109,97 +179,109 @@ $demoEnabled = !empty($demoMode);
       color: #7c3aed;
     }
 
-    /* ── Public demo: one-click entry per role ───────── */
-    .demo-panel {
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 20px;
-      background: #f8fafc;
+    /* Admin — red */
+    .role-preview-card[data-role="admin"] {
+      box-shadow: inset 3px 0 0 #ef4444;
+    }
+    .role-preview-card[data-role="admin"] .role-icon-wrap {
+      background: #fef2f2;
+    }
+    .role-preview-card[data-role="admin"] .role-icon-wrap i {
+      color: #dc2626;
     }
 
-    .demo-panel h3 {
+    /* ── Top-right bar: language switch + source code ── */
+    .login-topbar {
+      position: fixed;
+      top: 18px;
+      right: 22px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 15px;
-      margin: 0 0 6px;
+      gap: 10px;
+      z-index: 10;
     }
 
-    .demo-panel p {
-      font-size: 13px;
-      color: #475569;
-      margin: 0 0 12px;
-      line-height: 1.45;
-    }
-
-    .demo-panel p em {
-      display: block;
-      color: #64748b;
-    }
-
-    .demo-roles {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .demo-role-btn {
+    .lang-switch {
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 2px;
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      background: #fff;
-      cursor: pointer;
-      text-align: left;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .lang-switch button {
+      border: none;
+      background: none;
+      padding: 6px 10px;
       font: inherit;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-
-    .demo-role-btn strong {
-      font-size: 13px;
-      color: #0f172a;
-    }
-
-    .demo-role-btn span {
-      font-size: 11px;
-      color: #64748b;
-    }
-
-    .demo-role-btn:hover {
-      border-color: #94a3b8;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-    }
-
-    .demo-role-btn[value="tura"] { box-shadow: inset 3px 0 0 #f97316; }
-    .demo-role-btn[value="depozit"] { box-shadow: inset 3px 0 0 #3b82f6; }
-    .demo-role-btn[value="manager"] { box-shadow: inset 3px 0 0 #8b5cf6; }
-    .demo-role-btn[value="admin"] { box-shadow: inset 3px 0 0 #ef4444; }
-
-    .demo-panel-footer {
-      font-size: 11px;
-      color: #64748b;
-      margin-top: 10px;
-    }
-
-    .demo-panel-footer a {
-      color: #2563eb;
-    }
-
-    .demo-divider {
-      text-align: center;
       font-size: 12px;
-      color: #94a3b8;
-      margin: 4px 0 16px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+    }
+
+    .lang-switch button.active {
+      background: #0f172a;
+      color: #ffffff;
+    }
+
+    .github-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid #0f172a;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .github-link i {
+      font-size: 18px;
+    }
+
+    .github-link:hover {
+      background: #0f172a;
+      color: #ffffff;
+    }
+
+    /* ── Right card: demo note above the classic sign-in ── */
+    .login-form-header h2 {
+      font-size: 20px;
+    }
+
+    .demo-note {
+      display: flex;
+      gap: 10px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #1e3a8a;
+    }
+
+    .demo-note i {
+      font-size: 18px;
+      margin-top: 1px;
     }
 
     /* ── Input wrap: allow focus ring to paint outside ── */
     .input-wrap {
       overflow: visible;
+    }
+
+    .input-wrap > i {
+      left: 14px;
+    }
+
+    .form-input {
+      padding-left: 42px;
     }
 
     /* ── Responsive ──────────────────────────────────── */
@@ -211,10 +293,28 @@ $demoEnabled = !empty($demoMode);
       .login-brand-inner {
         min-height: auto;
       }
+      .login-topbar {
+        position: static;
+        justify-content: flex-end;
+        padding: 12px 16px 0;
+      }
     }
   </style>
 </head>
 <body class="login-body">
+
+  <?php if ($demoEnabled): ?>
+  <div class="login-topbar">
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button type="button" data-lang="ro">RO</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+    <a class="github-link" href="https://github.com/BogdanDumitrascu04/flowlogix" target="_blank" rel="noopener">
+      <i class='bx bxl-github'></i>
+      <span data-i18n="source">Cod sursă</span>
+    </a>
+  </div>
+  <?php endif; ?>
 
   <div class="login-container">
     <!-- BRANDING PANEL (LEFT) -->
@@ -226,48 +326,51 @@ $demoEnabled = !empty($demoMode);
           </div>
           <div>
             <h1>FlowLogix</h1>
-            <p>Dashboard operațional logistic</p>
+            <p data-i18n="tagline">Dashboard operațional logistic</p>
           </div>
         </div>
 
         <div class="login-brand-content">
-          <h2>Platformă logistică pentru control operațional</h2>
-          <p>
+          <h2 data-i18n="headline">Platformă logistică pentru control operațional</h2>
+          <p data-i18n="intro">
             FlowLogix oferă acces rapid la recepții, comenzi, livrări și rapoarte,
             în funcție de rolul fiecărui utilizator.
           </p>
 
+          <?php if ($demoEnabled): ?>
+          <p class="demo-hint" data-i18n="pickRole">Alege un rol pentru a intra în demo:</p>
+          <form action="demo_login.php" method="POST" class="login-role-preview">
+            <?php foreach ($loginRoles as $roleKey => $role): ?>
+            <button type="submit" name="role" value="<?php echo $roleKey; ?>" class="role-preview-card" data-role="<?php echo $roleKey; ?>">
+              <div class="role-icon-wrap">
+                <i class='bx <?php echo $role['icon']; ?>'></i>
+              </div>
+              <div class="role-card-text">
+                <strong data-i18n="role_<?php echo $roleKey; ?>"><?php echo $role['name']; ?></strong>
+                <span data-i18n="desc_<?php echo $roleKey; ?>"><?php echo $role['desc']; ?></span>
+              </div>
+              <span class="role-card-enter">
+                <span data-i18n="enter">Intră</span>
+                <i class='bx bx-right-arrow-alt'></i>
+              </span>
+            </button>
+            <?php endforeach; ?>
+          </form>
+          <?php else: ?>
           <div class="login-role-preview">
-            <div class="role-preview-card" data-role="tura">
+            <?php foreach ($loginRoles as $roleKey => $role): ?>
+            <div class="role-preview-card" data-role="<?php echo $roleKey; ?>">
               <div class="role-icon-wrap">
-                <i class='bx bx-time-five'></i>
+                <i class='bx <?php echo $role['icon']; ?>'></i>
               </div>
               <div>
-                <strong>Șef de tură</strong>
-                <span>Monitorizare activă și intervenții rapide</span>
+                <strong><?php echo $role['name']; ?></strong>
+                <span><?php echo $role['desc']; ?></span>
               </div>
             </div>
-
-            <div class="role-preview-card" data-role="depozit">
-              <div class="role-icon-wrap">
-                <i class='bx bx-buildings'></i>
-              </div>
-              <div>
-                <strong>Șef de depozit</strong>
-                <span>Coordonarea fluxurilor și rapoarte operaționale</span>
-              </div>
-            </div>
-
-            <div class="role-preview-card" data-role="manager">
-              <div class="role-icon-wrap">
-                <i class='bx bx-line-chart'></i>
-              </div>
-              <div>
-                <strong>Manager logistic</strong>
-                <span>Performanță generală și decizii bazate pe date</span>
-              </div>
-            </div>
+            <?php endforeach; ?>
           </div>
+          <?php endif; ?>
         </div>
       </div>
     </div>
@@ -276,47 +379,24 @@ $demoEnabled = !empty($demoMode);
     <div class="login-form-section">
       <div class="login-form-card">
         <div class="login-form-header">
-          <h2>Autentificare</h2>
-          <p>Conectează-te pentru a accesa dashboard-ul FlowLogix.</p>
+          <h2 data-i18n="signInTitle">Autentificare</h2>
+          <p data-i18n="signInSubtitle">Conectează-te pentru a accesa dashboard-ul FlowLogix.</p>
         </div>
 
         <?php if ($demoEnabled): ?>
-          <div class="demo-panel">
-            <h3><i class='bx bx-play-circle'></i> Demo live</h3>
-            <p>
-              Aplicația rulează cu date demo, actualizate la fiecare oră. Alege un rol pentru a intra.
-              <em>Live demo with sample data that updates every hour. Pick a role to look around.</em>
-            </p>
-            <form action="demo_login.php" method="POST" class="demo-roles">
-              <button type="submit" name="role" value="manager" class="demo-role-btn">
-                <strong>Manager logistic</strong>
-                <span>Logistics manager</span>
-              </button>
-              <button type="submit" name="role" value="depozit" class="demo-role-btn">
-                <strong>Șef de depozit</strong>
-                <span>Warehouse manager</span>
-              </button>
-              <button type="submit" name="role" value="tura" class="demo-role-btn">
-                <strong>Șef de tură</strong>
-                <span>Shift supervisor</span>
-              </button>
-              <button type="submit" name="role" value="admin" class="demo-role-btn">
-                <strong>Administrator</strong>
-                <span>Admin (read-only)</span>
-              </button>
-            </form>
-            <div class="demo-panel-footer">
-              Datele se resetează în fiecare noapte · Data resets every night ·
-              <a href="https://github.com/BogdanDumitrascu04/flowlogix" target="_blank" rel="noopener">Cod sursă / Source code</a>
-            </div>
+          <div class="demo-note">
+            <i class='bx bx-info-circle'></i>
+            <span data-i18n="demoNote">
+              Demo live: alege un rol din stânga ca să intri fără cont. Datele se actualizează în fiecare oră
+              și se resetează în fiecare noapte.
+            </span>
           </div>
-          <div class="demo-divider">sau autentifică-te cu un cont · or sign in</div>
         <?php endif; ?>
 
         <?php if (isset($_GET['error'])): ?>
           <div class="login-alert login-alert-error">
             <i class='bx bx-exclamation-circle'></i>
-            <span>Date invalide. Verifică username-ul și parola.</span>
+            <span data-i18n="error">Date invalide. Verifică username-ul și parola.</span>
           </div>
         <?php endif; ?>
 
@@ -330,6 +410,7 @@ $demoEnabled = !empty($demoMode);
                 id="userName"
                 name="name"
                 placeholder="Introdu username"
+                data-i18n-placeholder="userPlaceholder"
                 required
                 class="form-input"
               />
@@ -337,7 +418,7 @@ $demoEnabled = !empty($demoMode);
           </div>
 
           <div class="form-group">
-            <label for="userPassword">Parolă</label>
+            <label for="userPassword" data-i18n="password">Parolă</label>
             <div class="input-wrap input-wrap-password">
               <i class='bx bx-lock-alt'></i>
               <input
@@ -345,6 +426,7 @@ $demoEnabled = !empty($demoMode);
                 id="userPassword"
                 name="password"
                 placeholder="Introdu parola"
+                data-i18n-placeholder="passwordPlaceholder"
                 required
                 class="form-input"
               />
@@ -361,13 +443,13 @@ $demoEnabled = !empty($demoMode);
 
           <button type="submit" class="login-submit-btn">
             <i class='bx bx-log-in-circle'></i>
-            <span>Autentificare</span>
+            <span data-i18n="signInButton">Autentificare</span>
           </button>
         </form>
 
         <div class="login-helper-info">
           <i class='bx bx-info-circle'></i>
-          <p>Accesul se face pe baza contului de utilizator, iar rolul este determinat automat.</p>
+          <p data-i18n="helper">Accesul se face pe baza contului de utilizator, iar rolul este determinat automat.</p>
         </div>
       </div>
     </div>
@@ -401,6 +483,68 @@ $demoEnabled = !empty($demoMode);
         this.parentElement.classList.remove('focused');
       });
     });
+
+    // RO / EN for the login page of the public demo (the app itself stays in Romanian)
+    const langSwitch = document.querySelector('.lang-switch');
+    if (langSwitch) {
+      const english = {
+        source: 'Source code',
+        tagline: 'Logistics operations dashboard',
+        headline: 'A logistics platform for day-to-day operations control',
+        intro: 'FlowLogix gives quick access to receptions, orders, shipments and reports, based on each user\'s role.',
+        pickRole: 'Pick a role to enter the live demo:',
+        role_tura: 'Shift supervisor',
+        desc_tura: 'Live monitoring and quick action on blockers',
+        role_depozit: 'Warehouse manager',
+        desc_depozit: 'Flow coordination and operational reports',
+        role_manager: 'Logistics manager',
+        desc_manager: 'Overall performance and data-driven decisions',
+        role_admin: 'Administrator',
+        desc_admin: 'Users and roles (read-only in the demo)',
+        enter: 'Enter',
+        signInTitle: 'Sign in',
+        signInSubtitle: 'Sign in to open the FlowLogix dashboard.',
+        demoNote: 'Live demo: pick a role on the left to enter without an account. Data updates every hour and resets every night. The application itself is in Romanian.',
+        error: 'Invalid username or password.',
+        password: 'Password',
+        userPlaceholder: 'Enter username',
+        passwordPlaceholder: 'Enter password',
+        signInButton: 'Sign in',
+        helper: 'Access is based on your user account, and your role is detected automatically.'
+      };
+
+      // Keep the Romanian texts from the page, so switching back needs no second dictionary
+      const romanian = {};
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        romanian[el.dataset.i18n] = el.textContent.trim().replace(/\s+/g, ' ');
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        romanian[el.dataset.i18nPlaceholder] = el.placeholder;
+      });
+
+      function setLanguage(lang) {
+        const texts = lang === 'en' ? english : romanian;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          if (texts[el.dataset.i18n]) el.textContent = texts[el.dataset.i18n];
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+          if (texts[el.dataset.i18nPlaceholder]) el.placeholder = texts[el.dataset.i18nPlaceholder];
+        });
+        document.documentElement.lang = lang;
+        langSwitch.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+        try { localStorage.setItem('flowlogix_login_lang', lang); } catch (e) {}
+      }
+
+      langSwitch.addEventListener('click', e => {
+        if (e.target.dataset.lang) setLanguage(e.target.dataset.lang);
+      });
+
+      // Saved choice first; otherwise Romanian for Romanian browsers and English for everyone else
+      let saved = null;
+      try { saved = localStorage.getItem('flowlogix_login_lang'); } catch (e) {}
+      const browserIsRomanian = (navigator.language || '').toLowerCase().startsWith('ro');
+      setLanguage(saved || (browserIsRomanian ? 'ro' : 'en'));
+    }
   </script>
 </body>
 </html>
