@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 
 // PROTECȚIE: Doar role 'depozit' poate accesa
