@@ -1,7 +1,19 @@
 <?php
+// Sesiunea păstrează tokenul CSRF pe care îl trimit ambele formulare de pe pagină
+session_start();
 // Pe serverul live, config.php are $demoMode = true: cardurile de rol devin intrare directă în demo
 require_once 'config.php';
+require_once 'csrf.php';
 $demoEnabled = !empty($demoMode);
+
+// Mesajul afișat după codul din ?error= (trimis de authenticate.php și demo_login.php)
+$loginErrors = [
+    '1'       => 'Date invalide. Verifică username-ul și parola.',
+    'expired' => 'Formularul a expirat. Încearcă din nou.',
+    'locked'  => 'Prea multe încercări greșite. Încearcă din nou peste 15 minute.',
+];
+$errorKey = is_string($_GET['error'] ?? null) ? $_GET['error'] : '';
+$errorMessage = $loginErrors[$errorKey] ?? null;
 
 // Rolurile prezentate pe pagină; în demo, fiecare card e un buton care deschide dashboard-ul rolului
 $loginRoles = [
@@ -349,6 +361,7 @@ if ($demoEnabled) {
           <?php if ($demoEnabled): ?>
           <p class="demo-hint" data-i18n="pickRole">Alege un rol pentru a intra în demo:</p>
           <form action="demo_login.php" method="POST" class="login-role-preview">
+            <?php echo csrf_field(); ?>
             <?php foreach ($loginRoles as $roleKey => $role): ?>
             <button type="submit" name="role" value="<?php echo $roleKey; ?>" class="role-preview-card" data-role="<?php echo $roleKey; ?>">
               <div class="role-icon-wrap">
@@ -402,14 +415,15 @@ if ($demoEnabled) {
           </div>
         <?php endif; ?>
 
-        <?php if (isset($_GET['error'])): ?>
+        <?php if ($errorMessage !== null): ?>
           <div class="login-alert login-alert-error">
             <i class='bx bx-exclamation-circle'></i>
-            <span data-i18n="error">Date invalide. Verifică username-ul și parola.</span>
+            <span data-i18n="error_<?php echo $errorKey; ?>"><?php echo $errorMessage; ?></span>
           </div>
         <?php endif; ?>
 
         <form action="authenticate.php" method="POST" class="login-form">
+          <?php echo csrf_field(); ?>
           <div class="form-group">
             <label for="userName">Username</label>
             <div class="input-wrap">
@@ -516,7 +530,9 @@ if ($demoEnabled) {
         signInTitle: 'Sign in',
         signInSubtitle: 'Sign in to open the FlowLogix dashboard.',
         demoNote: 'Live demo: pick a role on the left to enter without an account. Data updates every hour and resets every night. The application itself is in Romanian.',
-        error: 'Invalid username or password.',
+        error_1: 'Invalid username or password.',
+        error_expired: 'The form expired. Please try again.',
+        error_locked: 'Too many failed attempts. Try again in 15 minutes.',
         password: 'Password',
         userPlaceholder: 'Enter username',
         passwordPlaceholder: 'Enter password',

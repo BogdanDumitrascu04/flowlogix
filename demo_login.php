@@ -7,6 +7,7 @@
  */
 session_start();
 require_once 'config.php';
+require_once 'csrf.php';
 
 $demoHomes = [
     'manager' => 'dashboard-manager.php',
@@ -15,10 +16,16 @@ $demoHomes = [
     'admin'   => 'admin.php',
 ];
 
-$role = $_POST['role'] ?? '';
+$role = is_string($_POST['role'] ?? null) ? $_POST['role'] : '';
 
 if (empty($demoMode) || $_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($demoHomes[$role])) {
     header("Location: login.php");
+    exit;
+}
+
+// Cardurile de rol sunt un formular: fără tokenul de pe login.php, cererea nu vine de acolo
+if (!csrf_valid()) {
+    header("Location: login.php?error=expired");
     exit;
 }
 

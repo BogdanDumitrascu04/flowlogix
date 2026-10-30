@@ -16,6 +16,7 @@ if ($_SESSION['role'] !== 'admin') {
 }
 
 require_once 'config.php';
+require_once 'csrf.php';
 
 if (!isset($conn) || !$conn) {
     die("Conexiunea la baza de date nu este disponibilă.");
@@ -23,7 +24,16 @@ if (!isset($conn) || !$conn) {
 
 $today   = date('Y-m-d');
 $ieri    = date('Y-m-d', strtotime('-1 day'));
-$confirm = isset($_GET['confirm']) && $_GET['confirm'] === '1';
+
+// Inserarea pornește doar din butonul de confirmare (POST cu token CSRF), nu dintr-un simplu link
+$confirm = false;
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    if (!csrf_valid()) {
+        http_response_code(403);
+        exit('Cererea a fost respinsă: token de securitate invalid. Reîncarcă pagina și încearcă din nou.');
+    }
+    $confirm = true;
+}
 
 /* ── Anti-duplicate: check if today's demo data was already seeded ─── */
 $alreadyExists = false;
@@ -432,7 +442,9 @@ $showPreview = (!$confirm && !$alreadyExists);
     .btn-confirm-big {
       display: inline-block; background: #15803d; color: #fff; text-decoration: none;
       padding: 12px 28px; border-radius: 6px; font-size: 15px; font-weight: 700; margin-top: 4px;
+      border: none; cursor: pointer; font-family: inherit;
     }
+    .actions form { display: contents; }
     .btn-confirm-big:hover { background: #166534; }
   </style>
 </head>
@@ -590,9 +602,10 @@ $showPreview = (!$confirm && !$alreadyExists);
     </div>
 
     <div class="actions">
-      <a href="add_today_demo.php?confirm=1" class="btn-confirm-big">
-        Adaugă date demo pentru azi
-      </a>
+      <form method="POST" action="add_today_demo.php">
+        <?php echo csrf_field(); ?>
+        <button type="submit" class="btn-confirm-big">Adaugă date demo pentru azi</button>
+      </form>
       <a href="admin.php" class="btn-back">&#8592; Înapoi la admin</a>
     </div>
 

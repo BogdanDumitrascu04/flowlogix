@@ -2,6 +2,7 @@
 session_start();
 $currentPage = 'admin';
 require_once 'config.php';
+require_once 'csrf.php';
 
 // PROTECȚIE: Doar admin poate accesa
 if (!isset($_SESSION['user'])) {
@@ -20,6 +21,12 @@ $action = $_REQUEST['action'] ?? '';
 if (!empty($demoMode) && in_array($action, ['add', 'edit', 'delete'], true)) {
     header("Location: admin.php?demo=readonly");
     exit;
+}
+
+// Orice modificare (POST) trebuie să vină din formularele acestei pagini, care poartă tokenul CSRF
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && !csrf_valid()) {
+    http_response_code(403);
+    exit('Cererea a fost respinsă: token de securitate invalid. Reîncarcă pagina și încearcă din nou.');
 }
 
 // ADĂUGARE utilizator
@@ -633,6 +640,7 @@ $roleColors = [
                 <p>Adaugă un utilizator nou în sistem.</p>
             </div>
             <form id="addForm" method="POST">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="add">
                 <input type="hidden" name="role" id="addRole" value="">
 
@@ -662,6 +670,7 @@ $roleColors = [
                 <p>Modifică datele utilizatorului.</p>
             </div>
             <form id="editForm" method="POST">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="id" id="editId" value="">
 
@@ -730,7 +739,7 @@ $roleColors = [
             if (confirm(`Ești sigur că vrei să ștergi utilizatorul "${name}"?`)) {
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.innerHTML = `<input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="${id}">`;
+                form.innerHTML = `<?php echo csrf_field(); ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="${id}">`;
                 document.body.appendChild(form);
                 form.submit();
             }
