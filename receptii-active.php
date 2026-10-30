@@ -50,7 +50,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     header('Content-Disposition: attachment; filename="receptii-active-' . date('Y-m-d') . '.csv"');
     $output = fopen('php://output', 'w');
     echo "\xEF\xBB\xBF";
-    fputcsv($output, ['Nr. recepție', 'Furnizor', 'Status derivat', 'Prioritate derivată', 'Data creare', 'Termen estimat', 'Data finalizare', 'Zile restanță'], ';');
+    flx_csv_row($output, ['Nr. recepție', 'Furnizor', 'Status derivat', 'Prioritate derivată', 'Data creare', 'Termen estimat', 'Data finalizare', 'Zile restanță']);
     if ($csvResult) {
         while ($row = $csvResult->fetch_assoc()) {
             $derivedStatus   = flx_inbound_status($row);
@@ -64,7 +64,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
                     $daysOverdue = (int)(($today - $due) / 86400);
                 }
             }
-            fputcsv($output, [
+            flx_csv_row($output, [
                 $row['reception_number'],
                 $row['supplier_name'],
                 $derivedStatus,
@@ -73,7 +73,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
                 $row['expected_finished_date'] ?? '',
                 $row['finished_at'] ?? '',
                 $daysOverdue,
-            ], ';');
+            ]);
         }
     }
     fclose($output);

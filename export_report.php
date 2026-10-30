@@ -53,20 +53,20 @@ fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 /* FUNCȚIE PENTRU SCRIERE SECȚIUNE */
 function writeSectionTitle($output, $title)
 {
-    fputcsv($output, [$title], ';');
+    flx_csv_row($output, [$title]);
 }
 
 function writeEmptyRow($output)
 {
-    fputcsv($output, [''], ';');
+    flx_csv_row($output, ['']);
 }
 
 /* INFO RAPORT */
-fputcsv($output, ['FlowLogix - Raport exportat'], ';');
-fputcsv($output, ['Perioadă', $periodLabel], ';');
-fputcsv($output, ['Arie', $area], ';');
-fputcsv($output, ['Nivel detaliu', $detail], ';');
-fputcsv($output, ['Data generării', date('d.m.Y H:i:s')], ';');
+flx_csv_row($output, ['FlowLogix - Raport exportat']);
+flx_csv_row($output, ['Perioadă', $periodLabel]);
+flx_csv_row($output, ['Arie', $area]);
+flx_csv_row($output, ['Nivel detaliu', $detail]);
+flx_csv_row($output, ['Data generării', date('d.m.Y H:i:s')]);
 writeEmptyRow($output);
 
 /* =========================
@@ -75,7 +75,7 @@ writeEmptyRow($output);
 if ($detail === 'executive') {
 
     writeSectionTitle($output, 'Sinteză operațională');
-    fputcsv($output, ['Modul', 'Total', 'Finalizate / Expediate', 'În lucru / Pregătite', 'Întârziate / Așteptare / Risc'], ';');
+    flx_csv_row($output, ['Modul', 'Total', 'Finalizate / Expediate', 'În lucru / Pregătite', 'Întârziate / Așteptare / Risc']);
 
     if ($area === 'all' || $area === 'inbound') {
         $total = 0;
@@ -93,7 +93,7 @@ if ($detail === 'executive') {
         if ($q3) $processing = (int)$q3->fetch_assoc()['total'];
         if ($q4) $pending = (int)$q4->fetch_assoc()['total'];
 
-        fputcsv($output, ['Inbound', $total, $completed, $processing, $pending], ';');
+        flx_csv_row($output, ['Inbound', $total, $completed, $processing, $pending]);
     }
 
     if ($area === 'all' || $area === 'pickpack') {
@@ -112,7 +112,7 @@ if ($detail === 'executive') {
         if ($q3) $inProgress = (int)$q3->fetch_assoc()['total'];
         if ($q4) $notStarted = (int)$q4->fetch_assoc()['total'];
 
-        fputcsv($output, ['Pick / Pack', $total, $completed, $inProgress, $notStarted], ';');
+        flx_csv_row($output, ['Pick / Pack', $total, $completed, $inProgress, $notStarted]);
     }
 
     if ($area === 'all' || $area === 'outbound') {
@@ -131,13 +131,13 @@ if ($detail === 'executive') {
         if ($q3) $ready = (int)$q3->fetch_assoc()['total'];
         if ($q4) $delayed = (int)$q4->fetch_assoc()['total'];
 
-        fputcsv($output, ['Outbound', $total, $shipped, $ready, $delayed], ';');
+        flx_csv_row($output, ['Outbound', $total, $shipped, $ready, $delayed]);
     }
 
     writeEmptyRow($output);
 
     writeSectionTitle($output, 'Restanțe operaționale');
-    fputcsv($output, ['Modul', 'Referință', 'Context', 'Problemă', 'Scadență', 'Zile restanță'], ';');
+    flx_csv_row($output, ['Modul', 'Referință', 'Context', 'Problemă', 'Scadență', 'Zile restanță']);
 
     $backlogRows = [];
 
@@ -188,17 +188,17 @@ if ($detail === 'executive') {
     if (!empty($backlogRows)) {
         usort($backlogRows, fn($a, $b) => (int)$b['days_overdue'] - (int)$a['days_overdue']);
         foreach ($backlogRows as $row) {
-            fputcsv($output, [
+            flx_csv_row($output, [
                 $row['module'],
                 $row['reference'],
                 $row['context'],
                 $row['problem'],
                 $row['due_date'] ?? '',
                 '+' . (int)$row['days_overdue'] . ' zile'
-            ], ';');
+            ]);
         }
     } else {
-        fputcsv($output, ['Nu există restanțe operaționale pentru selecția curentă'], ';');
+        flx_csv_row($output, ['Nu există restanțe operaționale pentru selecția curentă']);
     }
 }
 
@@ -209,7 +209,7 @@ else {
 
     if ($area === 'all' || $area === 'inbound') {
         writeSectionTitle($output, 'Inbound - Detaliat');
-        fputcsv($output, ['Nr. recepție', 'Furnizor', 'Status', 'Prioritate', 'Creată la', 'Finalizată la'], ';');
+        flx_csv_row($output, ['Nr. recepție', 'Furnizor', 'Status', 'Prioritate', 'Creată la', 'Finalizată la']);
 
         $query = "
             SELECT reception_number, supplier_name, status, priority, created_at, finished_at, expected_finished_date
@@ -221,17 +221,17 @@ else {
 
         if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-                fputcsv($output, [
+                flx_csv_row($output, [
                     $row['reception_number'],
                     $row['supplier_name'],
                     flx_inbound_status($row),
                     flx_inbound_priority($row),
                     $row['created_at'],
                     $row['finished_at']
-                ], ';');
+                ]);
             }
         } else {
-            fputcsv($output, ['Nu există date inbound pentru selecția curentă'], ';');
+            flx_csv_row($output, ['Nu există date inbound pentru selecția curentă']);
         }
 
         writeEmptyRow($output);
@@ -239,7 +239,7 @@ else {
 
     if ($area === 'all' || $area === 'pickpack') {
         writeSectionTitle($output, 'Pick / Pack - Detaliat');
-        fputcsv($output, ['Nr. comandă', 'Operator', 'Articole', 'Status', 'Creată la', 'Finalizată la'], ';');
+        flx_csv_row($output, ['Nr. comandă', 'Operator', 'Articole', 'Status', 'Creată la', 'Finalizată la']);
 
         $query = "
             SELECT order_number, operator_name, items_count, status, created_at, finished_at, expected_finished_date
@@ -251,17 +251,17 @@ else {
 
         if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-                fputcsv($output, [
+                flx_csv_row($output, [
                     $row['order_number'],
                     $row['operator_name'],
                     $row['items_count'],
                     flx_pickpack_status($row),
                     $row['created_at'],
                     $row['finished_at']
-                ], ';');
+                ]);
             }
         } else {
-            fputcsv($output, ['Nu există date pick / pack pentru selecția curentă'], ';');
+            flx_csv_row($output, ['Nu există date pick / pack pentru selecția curentă']);
         }
 
         writeEmptyRow($output);
@@ -269,7 +269,7 @@ else {
 
     if ($area === 'all' || $area === 'outbound') {
         writeSectionTitle($output, 'Outbound - Detaliat');
-        fputcsv($output, ['Nr. comandă', 'Destinație', 'Dată planificată', 'Zile întârziere', 'Status', 'Creată la', 'Finalizată la'], ';');
+        flx_csv_row($output, ['Nr. comandă', 'Destinație', 'Dată planificată', 'Zile întârziere', 'Status', 'Creată la', 'Finalizată la']);
 
         $query = "
             SELECT order_number, destination, planned_date, status, created_at, finished_at
@@ -281,7 +281,7 @@ else {
 
         if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-                fputcsv($output, [
+                flx_csv_row($output, [
                     $row['order_number'],
                     $row['destination'],
                     $row['planned_date'],
@@ -289,10 +289,10 @@ else {
                     flx_outbound_status($row),
                     $row['created_at'],
                     $row['finished_at']
-                ], ';');
+                ]);
             }
         } else {
-            fputcsv($output, ['Nu există date outbound pentru selecția curentă'], ';');
+            flx_csv_row($output, ['Nu există date outbound pentru selecția curentă']);
         }
 
         writeEmptyRow($output);

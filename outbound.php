@@ -68,12 +68,12 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     header('Content-Disposition: attachment; filename="outbound-' . date('Y-m-d') . '.csv"');
     $output = fopen('php://output', 'w');
     echo "\xEF\xBB\xBF";
-    fputcsv($output, ['Nr. comandă', 'Destinație', 'Status derivat', 'Data creare', 'Data planificată', 'Data finalizare', 'Zile restanță'], ';');
+    flx_csv_row($output, ['Nr. comandă', 'Destinație', 'Status derivat', 'Data creare', 'Data planificată', 'Data finalizare', 'Zile restanță']);
     if ($csvResult) {
         while ($row = $csvResult->fetch_assoc()) {
             $derivedStatus = flx_outbound_status($row);
             $delayDays     = flx_outbound_delay_days($row);
-            fputcsv($output, [
+            flx_csv_row($output, [
                 $row['order_number'],
                 $row['destination'],
                 $derivedStatus,
@@ -81,7 +81,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
                 $row['planned_date'] ?? '',
                 $row['finished_at'] ?? '',
                 $delayDays,
-            ], ';');
+            ]);
         }
     }
     fclose($output);

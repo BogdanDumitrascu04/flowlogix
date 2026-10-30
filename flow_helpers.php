@@ -61,6 +61,28 @@ function flx_query(mysqli $db, string $sql, array $params = []): mysqli_result|f
 }
 
 // ============================================================
+// CSV EXPORT
+// ============================================================
+
+/**
+ * Scrie un rând CSV (separator ;) din care Excel nu poate executa nimic.
+ * Excel tratează ca formulă o celulă care începe cu = + - @ (sau tab / Enter),
+ * deci un furnizor numit „=HYPERLINK(...)” ar rula la deschiderea fișierului.
+ * Un apostrof în față păstrează textul ca text. Numerele negative rămân neschimbate.
+ */
+function flx_csv_row($handle, array $row): void
+{
+    $safeRow = array_map(function ($value) {
+        if (is_string($value) && $value !== '' && !is_numeric($value) && strpbrk($value[0], "=+-@\t\r") !== false) {
+            return "'" . $value;
+        }
+        return $value;
+    }, $row);
+
+    fputcsv($handle, $safeRow, ';');
+}
+
+// ============================================================
 // DERIVED LOGIC HELPERS (migration step — do not query DB)
 // ============================================================
 
