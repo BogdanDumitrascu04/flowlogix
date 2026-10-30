@@ -404,18 +404,6 @@ $roleColors = [
                 gap: 20px;
                 margin-top: 16px;
             }
-
-            /* Butonul trece sub text, altfel nu încape lângă el pe telefon */
-            .demo-card {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 16px;
-                padding: 18px;
-            }
-
-            .demo-btn {
-                justify-content: center;
-            }
         }
 
         .demo-section {
@@ -490,6 +478,20 @@ $roleColors = [
 
         .demo-btn:hover {
             filter: brightness(0.92);
+        }
+
+        /* Butonul trece sub text, altfel nu încape lângă el pe telefon */
+        @media (max-width: 768px) {
+            .demo-card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+                padding: 18px;
+            }
+
+            .demo-btn {
+                justify-content: center;
+            }
         }
 
         .password-wrapper {
