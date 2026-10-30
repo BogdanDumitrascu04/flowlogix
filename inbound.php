@@ -273,8 +273,8 @@ while (count($recommendations) < 3) {
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>FlowLogix | Inbound</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="css/sidebar.css?v=13">
-  <link rel="stylesheet" href="css/styles.css?v=13">
+  <link rel="stylesheet" href="css/sidebar.css?v=14">
+  <link rel="stylesheet" href="css/styles.css?v=14">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
