@@ -69,6 +69,12 @@ jobs:
       - name: Open every page as each role
         run: bash tests/render_pages.sh
 
+      - name: Check CSRF tokens, the login limit and CSV exports over HTTP
+        run: |
+          php -S 127.0.0.1:8000 > /tmp/php-server.log 2>&1 &
+          sleep 1
+          bash tests/security_checks.sh
+
   deploy:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
