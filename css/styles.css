@@ -1366,6 +1366,16 @@ tr:hover {
     padding: 10px;
     font-size: 0.88rem;
   }
+
+  .card-tag {
+    white-space: nowrap;
+  }
+
+  /* Coduri și date pe un singur rând; tabelul se derulează lateral în card */
+  .table-wrap td,
+  .table-scroll td {
+    white-space: nowrap;
+  }
 }
 
 /* Tabelele lungi se derulează în containerul lor, nu lărgesc pagina */
