@@ -32,6 +32,7 @@ Each page checks the role saved in the session. A user who opens a page that bel
 - CSV exports and printable reports
 - Charts with Chart.js
 - Five color themes, saved in the browser
+- Works on phones and tablets: below 900 px the sidebar becomes a menu that opens from the top bar, and long tables scroll inside their card
 
 ## Screenshots
 
@@ -40,6 +41,13 @@ Each page checks the role saved in the session. A user who opens a page that bel
 | ![Shift supervisor dashboard](docs/screenshots/shift-dashboard.png) | ![Warehouse manager dashboard](docs/screenshots/warehouse-dashboard.png) |
 | **Login** | **User administration** |
 | ![Login page](docs/screenshots/login.png) | ![User administration](docs/screenshots/admin-users.png) |
+
+On a phone, the manager dashboard and the menu:
+
+<p>
+  <img src="docs/screenshots/phone-manager-dashboard.png" alt="Manager dashboard on a phone" width="280">
+  <img src="docs/screenshots/phone-menu.png" alt="Side menu open on a phone" width="280">
+</p>
 
 ## Tech stack
 
@@ -172,6 +180,8 @@ Moving from WampServer to a standard MySQL server exposed two old bugs: a `GROUP
 | `inbound.php`, `pickpack.php`, `outbound.php` | Detailed pages for each flow |
 | `raport-*.php`, `rapoarte.php`, `export_report.php` | Reports and CSV exports |
 | `admin.php` | User management |
+| `sidebar.php`, `js/sidebar.js` | Menu shared by all pages; on phones and tablets it opens from the top bar |
+| `css/`, `js/app.js` | Styles, color themes and responsive layout; charts and filters |
 | `flow_helpers.php` | Shared functions: period filters, the `flx_query()` helper for prepared statements, status rules |
 | `database/` | Schema with demo data, and the password migration script |
 | `jobs/simulate_orders.php` | Hourly order simulator |
