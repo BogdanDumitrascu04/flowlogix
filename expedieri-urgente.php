@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// PROTECȚIE: Doar role 'tura' poate accesa
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -17,7 +16,7 @@ require_once 'flow_helpers.php';
 $currentPage = 'expedieri-urgente';
 
 $period = isset($_GET['period']) ? $_GET['period'] : 'today';
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateCondition = "created_at BETWEEN ? AND ?";
 $dateParams = flx_period_params('today');
 
@@ -76,7 +75,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     exit;
 }
 
-// Query-uri pentru outbound urgent (derived logic — fără dependență de status/delay_minutes stocate)
+// Status and delay are derived from the dates (flow_helpers.php), not read from the stored columns.
 $readyQuery = "SELECT COUNT(*) as total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) >= CURDATE() AND $plannedDateCondition";
 $delayedQuery = "SELECT COUNT(*) as total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE() AND $plannedDateCondition";
 $priorityQuery = "SELECT COUNT(*) as total FROM outbound_orders WHERE finished_at IS NOT NULL AND DATE(finished_at) > DATE(planned_date) AND $finishedAtCondition";
@@ -90,7 +89,6 @@ $avgDelayQuery = "SELECT ROUND(AVG(
     END
 ), 0) as avg_delay FROM outbound_orders WHERE $plannedDateCondition";
 
-// Tabel expedieri urgente
 $tableQuery = "SELECT
     order_number,
     destination,
@@ -106,7 +104,6 @@ ORDER BY
     CASE WHEN finished_at IS NULL AND DATE(planned_date) < CURDATE() THEN 0 ELSE 1 END ASC,
     planned_date ASC";
 
-// Grafic: distribuție status derivat
 $statusQuery = "SELECT
     CASE
         WHEN finished_at IS NULL AND DATE(planned_date) < CURDATE() THEN 'backlog'
@@ -131,7 +128,6 @@ $delayed = ($delayedResult && $delayedResult->num_rows > 0) ? (int)$delayedResul
 $priority = ($priorityResult && $priorityResult->num_rows > 0) ? (int)$priorityResult->fetch_assoc()['total'] : 0;
 $avgDelay = ($avgDelayResult && $avgDelayResult->num_rows > 0) ? round((float)$avgDelayResult->fetch_assoc()['avg_delay']) : 0;
 
-// Prelucrează date pentru grafic (status derivat cu etichete românești)
 $statusLabels = [];
 $statusData = [];
 $statusTranslationsOutbound = [
@@ -242,7 +238,6 @@ $tableStatusCss = [
             </div>
 
       <div class="monitoring-grid">
-        <!-- Tabel expedieri -->
         <div class="monitoring-table">
           <div class="card">
             <div class="card-header">
@@ -303,7 +298,6 @@ $tableStatusCss = [
           </div>
         </div>
 
-        <!-- Grafic status -->
         <div class="monitoring-chart">
           <div class="card">
             <div class="card-header">

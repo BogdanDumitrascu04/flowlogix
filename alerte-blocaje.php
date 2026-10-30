@@ -15,7 +15,6 @@ require_once 'flow_helpers.php';
 
 $currentPage = 'alerte-blocaje';
 
-/* KPI — blocaje curente per modul */
 $inboundBacklogQuery  = "SELECT COUNT(*) AS total FROM inbound_orders  WHERE finished_at IS NULL AND (expected_finished_date < CURDATE() OR DATE(created_at) < CURDATE())";
 $pickpackBacklogQuery = "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE()";
 $outboundBacklogQuery = "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE()";
@@ -32,7 +31,6 @@ $criticalQuery        = "
   ) AS bl WHERE days_over >= 3
 ";
 
-/* Tabel unificat blocaje */
 $blocajeQuery = "
 (SELECT
   'inbound'               AS module,
@@ -182,7 +180,6 @@ function severityFromDays($days) {
         </div>
       <?php endif; ?>
 
-      <!-- Tabel blocaje operaționale -->
       <div class="card" style="margin-top: 20px;">
         <div class="card-header">
           <div class="card-title-wrap">

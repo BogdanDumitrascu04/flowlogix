@@ -18,8 +18,7 @@ $period = isset($_GET['period']) ? $_GET['period'] : 'all';
 $area = isset($_GET['area']) ? $_GET['area'] : 'all';
 $detail = isset($_GET['detail']) ? $_GET['detail'] : 'executive';
 
-/* FILTRU PERIOADĂ */
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateFilter = "created_at BETWEEN ? AND ?";
 $dateParams = flx_period_params('all');
 $periodLabel = "Toată perioada";
@@ -38,19 +37,16 @@ if ($period === 'today') {
     $periodLabel = "Luna curentă";
 }
 
-/* PREGĂTIRE NUME FIȘIER */
 $filename = "flowlogix_raport_" . date("Y-m-d_H-i-s") . ".csv";
 
-/* HEADERS CSV */
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename=' . $filename);
 
 $output = fopen('php://output', 'w');
 
-/* BOM UTF-8 pentru diacritice corecte în Excel */
+/* UTF-8 BOM, so Excel shows the Romanian diacritics correctly */
 fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 
-/* FUNCȚIE PENTRU SCRIERE SECȚIUNE */
 function writeSectionTitle($output, $title)
 {
     flx_csv_row($output, [$title]);
@@ -61,7 +57,6 @@ function writeEmptyRow($output)
     flx_csv_row($output, ['']);
 }
 
-/* INFO RAPORT */
 flx_csv_row($output, ['FlowLogix - Raport exportat']);
 flx_csv_row($output, ['Perioadă', $periodLabel]);
 flx_csv_row($output, ['Arie', $area]);
@@ -69,9 +64,7 @@ flx_csv_row($output, ['Nivel detaliu', $detail]);
 flx_csv_row($output, ['Data generării', date('d.m.Y H:i:s')]);
 writeEmptyRow($output);
 
-/* =========================
-   NIVEL EXECUTIV
-   ========================= */
+/* Executive level: totals per flow and the overdue items */
 if ($detail === 'executive') {
 
     writeSectionTitle($output, 'Sinteză operațională');
@@ -202,9 +195,7 @@ if ($detail === 'executive') {
     }
 }
 
-/* =========================
-   NIVEL DETALIAT
-   ========================= */
+/* Detailed level: one row per order */
 else {
 
     if ($area === 'all' || $area === 'inbound') {

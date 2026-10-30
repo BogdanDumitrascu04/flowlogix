@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// PROTECȚIE: Utilizatorul trebuie să fie autentificat
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -11,7 +10,7 @@ $currentPage = 'outbound';
 require_once 'config.php';
 require_once 'flow_helpers.php';
 
-// Utilizează rolul din sesiune, nu din GET
+// The role always comes from the session, never from the query string.
 $roleKey = isset($_SESSION['role']) ? $_SESSION['role'] : 'default';
 $period = isset($_GET['period']) ? $_GET['period'] : '7d';
 
@@ -37,8 +36,7 @@ if ($roleKey === 'tura') {
   $primaryButtonText = "Rezumat livrări";
 }
 
-/* FILTRARE PE PERIOADĂ */
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateCondition = "created_at BETWEEN ? AND ?";
 $periodLabel = "Ultimele 7 zile";
 
@@ -103,7 +101,6 @@ $avgDelayQuery = "SELECT ROUND(AVG(
     END
 ), 0) AS avg_delay FROM outbound_orders WHERE $dateCondition";
 
-/* tabel principal */
 $tableQuery = "
   SELECT order_number, destination, planned_date, created_at, finished_at
   FROM outbound_orders
@@ -111,7 +108,6 @@ $tableQuery = "
   ORDER BY planned_date DESC
 ";
 
-/* activitate recentă */
 $recentQuery = "
   SELECT order_number, destination, planned_date, created_at, finished_at
   FROM outbound_orders
@@ -120,7 +116,6 @@ $recentQuery = "
   LIMIT 3
 ";
 
-/* avertizări backlog outbound */
 $backlogWarningsQuery = "
   SELECT order_number, destination,
     DATEDIFF(CURDATE(), DATE(planned_date)) AS days_overdue
@@ -132,7 +127,6 @@ $backlogWarningsQuery = "
   LIMIT 3
 ";
 
-/* grafic statusuri */
 $statusChartQuery = "
   SELECT
     CASE
@@ -147,7 +141,6 @@ $statusChartQuery = "
   GROUP BY derived_status
 ";
 
-/* grafic întârzieri pe destinații */
 $destinationChartQuery = "
   SELECT destination,
     AVG(
@@ -185,7 +178,6 @@ $avgDelay        = ($avgDelayResult && $avgDelayResult->num_rows > 0) ? (int)$av
 
 $shippedPercent = ($totalOutbound > 0) ? round(($shippedOutbound / $totalOutbound) * 100) : 0;
 
-/* grafice */
 $statusLabels = [];
 $statusData = [];
 
@@ -243,7 +235,6 @@ function delayLabel($delayDays) {
   return '+' . (int)$delayDays . ' zile';
 }
 
-/* recomandări */
 $recommendations = [];
 
 if ($backlogOutbound > 0) {
@@ -572,7 +563,7 @@ while (count($recommendations) < 3) {
     };
   </script>
 
-  <!-- Aplică tema din localStorage după ce body este încărcat -->
+  <!-- Saved color theme -->
   <script>
     (function() {
       const themes = ["theme-flowlogix-classic", "theme-flowlogix-ocean", "theme-flowlogix-orange", "theme-flowlogix-dark", "theme-flowlogix-ice"];

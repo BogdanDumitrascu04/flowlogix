@@ -1,10 +1,8 @@
 <?php
 /*
- * migrate_passwords.php
- * Migrare unică: înlocuiește parolele salvate în clar cu hash-uri bcrypt.
- * Se rulează din linia de comandă, din folderul proiectului:
+ * One-off migration: replaces plain-text passwords with bcrypt hashes.
  *   php database/migrate_passwords.php
- * Poate fi rulat de mai multe ori: parolele care sunt deja hash-uri sunt sărite.
+ * Safe to run again: passwords that are already hashed are skipped.
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -21,7 +19,7 @@ $migrated = 0;
 $skipped  = 0;
 
 while ($user = $result->fetch_assoc()) {
-    // password_get_info recunoaște un hash creat cu password_hash; pentru text simplu întoarce 'unknown'
+    // password_get_info() returns 'unknown' for anything that is not a password_hash() hash
     if (password_get_info($user['password'])['algoName'] !== 'unknown') {
         $skipped++;
         continue;

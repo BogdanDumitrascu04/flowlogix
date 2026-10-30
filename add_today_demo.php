@@ -1,8 +1,5 @@
 <?php
-// ============================================================
-// add_today_demo.php
-// Admin-only tool for seeding today's balanced demo data.
-// ============================================================
+// Admin tool: seeds a balanced set of demo orders for today.
 
 session_start();
 
@@ -25,7 +22,7 @@ if (!isset($conn) || !$conn) {
 $today   = date('Y-m-d');
 $ieri    = date('Y-m-d', strtotime('-1 day'));
 
-// Inserarea pornește doar din butonul de confirmare (POST cu token CSRF), nu dintr-un simplu link
+// Inserts run only from the confirmation form (POST + CSRF token), never from a link.
 $confirm = false;
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     if (!csrf_valid()) {
@@ -35,7 +32,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     $confirm = true;
 }
 
-/* ── Anti-duplicate: check if today's demo data was already seeded ─── */
+// Today's demo data is seeded at most once.
 $alreadyExists = false;
 $chkStmt = $conn->prepare(
     "SELECT COUNT(*) AS cnt FROM inbound_orders
@@ -49,7 +46,7 @@ if ($chk && ($chkRow = $chk->fetch_assoc())) {
     $alreadyExists = (int)$chkRow['cnt'] > 0;
 }
 
-/* ── Current today counts (for preview) ─────────────────────────────  */
+// Today's counts, shown in the preview.
 function atd_count(mysqli $c, string $t): int {
     $q = $c->query("SELECT COUNT(*) AS n FROM `$t` WHERE DATE(created_at) = CURDATE()");
     return ($q && ($row = $q->fetch_assoc())) ? (int)$row['n'] : 0;
@@ -58,7 +55,6 @@ $curIn = atd_count($conn, 'inbound_orders');
 $curPp = atd_count($conn, 'pickpack_orders');
 $curOb = atd_count($conn, 'outbound_orders');
 
-/* ── Helpers ─────────────────────────────────────────────────────────  */
 $suppliers    = ['Nordic Goods', 'Urban Trade', 'EuroShip', 'Fresh Import', 'TransLog Expert'];
 $operators    = ['Vlad Ionescu', 'Irina S', 'Monica D', 'Paul R', 'Carmen N', 'Dan V', 'Sorin L'];
 $destinations = ['București', 'Timișoara', 'Cluj-Napoca', 'Oradea', 'Brașov', 'Sibiu', 'Ploiești'];
@@ -82,15 +78,11 @@ function atd_max_num(mysqli $c, string $t): int {
 $ppBase = atd_max_num($conn, 'pickpack_orders');
 $obBase = atd_max_num($conn, 'outbound_orders');
 
-/* ─────────────────────────────────────────────────────────────────────
-   INBOUND ROWS — 20 rows → grad 80%
-     16 finalizate (în termen): created=azi, finished=azi, exp=azi
-      2 întârziate:             created=azi, finished=NULL, exp=IERI
-      2 în lucru:               created=azi, finished=NULL, exp=azi
-   KPI logic (dashboard-manager today): delayed = finished IS NULL AND
-   (expected < CURDATE() OR DATE(created) < CURDATE()). Since created=azi,
-   DATE(created)<CURDATE() is false; so exp<CURDATE() drives the delayed flag.
-   ───────────────────────────────────────────────────────────────────── */
+/*
+ * Inbound: 20 rows, 80% on time.
+ * 16 finished today, 2 overdue (expected yesterday), 2 open and due today.
+ * The manager dashboard counts an open row as delayed once its expected date has passed.
+ */
 $ibCreateH = [7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 7, 8, 8, 9, 7, 8];
 $ibFinishH = [10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 10, 11, 13, 15, 10, 16];
 
@@ -129,14 +121,11 @@ for ($i = 19; $i <= 20; $i++) {
     ];
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   PICKPACK ROWS — 20 rows → grad 75%
-     15 finalizate (în termen): created=azi, finished=azi, exp=azi
-      3 restante (depășit):     created=azi, finished=NULL, exp=IERI
-      2 în lucru:               created=azi, finished=NULL, exp=azi
-   Delayed rows keep operator_name assigned so picking-packing-tura
-   shows them as "in_progress" (visible for tura pages).
-   ───────────────────────────────────────────────────────────────────── */
+/*
+ * Pick/pack: 20 rows, 75% on time.
+ * 15 finished today, 3 overdue, 2 open and due today.
+ * Overdue rows keep an operator, so the shift pages list them as in progress.
+ */
 $ppRows = [];
 for ($i = 1; $i <= 15; $i++) {
     $ppRows[] = [
@@ -172,15 +161,11 @@ for ($i = 19; $i <= 20; $i++) {
     ];
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   OUTBOUND ROWS — 20 rows → grad 75% (15 finished / 20 total)
-     14 expediate la timp:  planned=azi,  finished=azi   → in_term
-      1 expediat tardiv:    planned=IERI, finished=azi   → in_term + shipped_late metric
-      3 întârziate active:  planned=IERI, finished=NULL  → delayed
-      2 gata de expediat:   planned=azi,  finished=NULL  → in_progress
-   Both "ready" rows use planned_date=azi so they appear on
-   expedieri-urgente?period=today (which filters by DATE(planned_date)=CURDATE()).
-   ───────────────────────────────────────────────────────────────────── */
+/*
+ * Outbound: 20 rows, 75% on time (15 shipped / 20).
+ * 14 shipped on time, 1 shipped late, 3 overdue, 2 ready for today.
+ * The ready rows are planned for today, so expedieri-urgente.php?period=today lists them.
+ */
 $obRows = [];
 for ($i = 1; $i <= 14; $i++) {
     $planH = rand(13, 17);
@@ -226,11 +211,10 @@ for ($i = 19; $i <= 20; $i++) {
     ];
 }
 
-/* ── Insert helper ───────────────────────────────────────────────────  */
 function atd_insert(mysqli $c, string $table, array $rows): int {
     $n = 0;
     foreach ($rows as $row) {
-        // Numele coloanelor vin din cod; valorile se leagă ca parametri (?)
+        // Column names come from this file; only values come from data and are bound as parameters.
         $cols = '`' . implode('`,`', array_keys($row)) . '`';
         $placeholders = implode(',', array_fill(0, count($row), '?'));
         $values = array_values($row);
@@ -243,7 +227,7 @@ function atd_insert(mysqli $c, string $table, array $rows): int {
     return $n;
 }
 
-/* ── KPI snapshot — mirrors dashboard-manager.php logic for period=today */
+// KPI preview: same rules as dashboard-manager.php for period=today.
 function atd_kpi(mysqli $c): array {
     $df = "DATE(created_at) = CURDATE()";
     $ib = $c->query("
@@ -295,7 +279,6 @@ function atd_kpi(mysqli $c): array {
     return $out;
 }
 
-/* ── Execute inserts (confirm mode only) ─────────────────────────────  */
 $insertedIb = $insertedPp = $insertedOb = 0;
 $insertError = null;
 $afterKpi    = null;
@@ -457,7 +440,7 @@ $showPreview = (!$confirm && !$alreadyExists);
   </div>
 
   <?php if ($alreadyExists): ?>
-    <!-- ── DUPLICATE ── -->
+    <!-- Already seeded today -->
     <div class="dup-banner">
       Datele demo pentru azi există deja.
     </div>
@@ -474,7 +457,7 @@ $showPreview = (!$confirm && !$alreadyExists);
     </div>
 
   <?php elseif ($confirm && $insertError !== null): ?>
-    <!-- ── INSERT ERROR ── -->
+    <!-- Insert failed -->
     <div class="err-banner">
       <strong>Eroare la inserare:</strong> <?php echo htmlspecialchars($insertError); ?>
       <br>Tranzacția a fost anulată. Nicio înregistrare nu a fost adăugată.
@@ -485,7 +468,7 @@ $showPreview = (!$confirm && !$alreadyExists);
     </div>
 
   <?php elseif ($showSuccess): ?>
-    <!-- ── SUCCESS ── -->
+    <!-- Success -->
     <div class="ok-banner">
       Datele demo pentru azi au fost adăugate cu succes.
     </div>
@@ -557,7 +540,7 @@ $showPreview = (!$confirm && !$alreadyExists);
     </div>
 
   <?php else: ?>
-    <!-- ── PREVIEW ── -->
+    <!-- Preview -->
 
     <div class="section-title">Înregistrări existente azi</div>
     <div class="cnt-grid">

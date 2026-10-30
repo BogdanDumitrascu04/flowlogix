@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// PROTECȚIE: Utilizatorul trebuie să fie autentificat
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -11,7 +10,7 @@ $currentPage = 'pickpack';
 require_once 'config.php';
 require_once 'flow_helpers.php';
 
-// Utilizează rolul din sesiune, nu din GET
+// The role always comes from the session, never from the query string.
 $roleKey = isset($_SESSION['role']) ? $_SESSION['role'] : 'default';
 $period = isset($_GET['period']) ? $_GET['period'] : '7d';
 
@@ -37,8 +36,7 @@ if ($roleKey === 'tura') {
   $primaryButtonText = "Rezumat productivitate";
 }
 
-/* FILTRARE PE PERIOADĂ */
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateCondition = "created_at BETWEEN ? AND ?";
 $periodLabel = "Ultimele 7 zile";
 
@@ -105,7 +103,7 @@ $notStartedQuery = "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished
 $backlogQuery    = "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE() AND $dateCondition";
 $itemsQuery      = "SELECT COALESCE(SUM(items_count),0) AS total FROM pickpack_orders WHERE $dateCondition";
 
-/* timp mediu de procesare doar pentru finalizate */
+/* Average processing time counts finished orders only */
 $avgProcessingQuery = "
   SELECT AVG(TIMESTAMPDIFF(MINUTE, created_at, finished_at)) AS avg_minutes
   FROM pickpack_orders
@@ -113,7 +111,6 @@ $avgProcessingQuery = "
     AND $dateCondition
 ";
 
-/* top operatori */
 $topOperatorsQuery = "
   SELECT operator_name, COUNT(*) AS total_orders
   FROM pickpack_orders
@@ -123,7 +120,6 @@ $topOperatorsQuery = "
   LIMIT 5
 ";
 
-/* activitate recentă */
 $recentQuery = "
   SELECT order_number, operator_name, items_count, status, created_at, finished_at
   FROM pickpack_orders
@@ -132,7 +128,6 @@ $recentQuery = "
   LIMIT 3
 ";
 
-/* tabel principal */
 $tableQuery = "
   SELECT order_number, operator_name, items_count, status, created_at, finished_at, expected_finished_date
   FROM pickpack_orders
@@ -140,7 +135,6 @@ $tableQuery = "
   ORDER BY created_at DESC
 ";
 
-/* avertizări backlog pick/pack */
 $backlogWarningsQuery = "
   SELECT order_number, operator_name,
     DATEDIFF(CURDATE(), expected_finished_date) AS days_overdue
@@ -152,7 +146,6 @@ $backlogWarningsQuery = "
   LIMIT 3
 ";
 
-/* grafic procesate vs neprocesate */
 $statusChartQuery = "
   SELECT
     CASE
@@ -167,7 +160,6 @@ $statusChartQuery = "
   ORDER BY FIELD(chart_status, 'Procesate', 'Neprocesate', 'Restante')
 ";
 
-/* grafic top operatori */
 $operatorChartQuery = "
   SELECT operator_name, COUNT(*) AS total_orders
   FROM pickpack_orders
@@ -201,7 +193,6 @@ $avgProcessingTime = ($avgProcessingResult && $avgProcessingResult->num_rows > 0
 
 $completedPercent = ($totalOrders > 0) ? round(($completedOrders / $totalOrders) * 100) : 0;
 
-/* grafice */
 $statusLabels = [];
 $statusData = [];
 
@@ -256,7 +247,6 @@ function formatProcessingMinutes($createdAt, $finishedAt, $status) {
   return '—';
 }
 
-/* top performer */
 $topPerformerName = 'N/A';
 $topPerformerCount = 0;
 
@@ -268,7 +258,6 @@ if ($topOperatorsResult && $topOperatorsResult->num_rows > 0) {
   mysqli_data_seek($topOperatorsResult, 0);
 }
 
-/* recomandări */
 $recommendations = [];
 
 if ($inProgressOrders > 0) {
@@ -611,7 +600,7 @@ while (count($recommendations) < 3) {
     };
   </script>
 
-  <!-- Aplică tema din localStorage după ce body este încărcat -->
+  <!-- Saved color theme -->
   <script>
     (function() {
       const themes = ["theme-flowlogix-classic", "theme-flowlogix-ocean", "theme-flowlogix-orange", "theme-flowlogix-dark", "theme-flowlogix-ice"];

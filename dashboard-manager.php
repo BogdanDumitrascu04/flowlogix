@@ -15,7 +15,7 @@ require_once 'flow_helpers.php';
 
 $currentPage = 'dashboard';
 $period      = isset($_GET['period']) ? $_GET['period'] : '30d';
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateFilter = "created_at BETWEEN ? AND ?";
 $dateParams = flx_period_params('30d');
 
@@ -172,7 +172,6 @@ if ($outboundTotal === 0) {
     $outboundGradBadge   = mgr_grad_badge($outboundGrad);
 }
 
-/* Acțiuni recomandate */
 $actiuni = [];
 if ($totalDelayed > 0) {
     $actiuni[] = 'Prioritizează situațiile întârziate.';
@@ -188,9 +187,8 @@ if ($totalDelayed > 0) {
     $actiuni[] = 'Nu sunt situații întârziate în perioada selectată.';
 }
 
-/* Notă demo: aspect realist la ~70–80% finalizate, ~10–20% întârziate, ~10% în lucru. */
+/* Demo data aims at roughly 70–80% finished, 10–20% delayed and 10% in progress. */
 
-/* Situații întârziate — top 10 */
 $delayedQuery = "
 SELECT flux, referinta, context_text, due_date, days_overdue
 FROM (
@@ -236,13 +234,13 @@ LIMIT 10
 ";
 $delayedResult = flx_query($conn, $delayedQuery, array_merge($dateParams, $dateParams, $dateParams));
 
-/* Rezumatul zilei, scris de jobs/daily_summary.php (Claude Haiku pe baza cifrelor din SQL) */
+/* Written every few hours by jobs/daily_summary.php (cron); the page only reads the latest row. */
 $aiSummary = null;
 try {
     $summaryResult = $conn->query("SELECT summary, generated_at FROM daily_summaries ORDER BY generated_at DESC LIMIT 1");
     $aiSummary = $summaryResult ? $summaryResult->fetch_assoc() : null;
 } catch (mysqli_sql_exception $e) {
-    // Tabelul lipsește într-o bază importată înainte de această funcție; pagina merge și fără rezumat
+    // Databases imported before this feature have no daily_summaries table; the page works without it.
     $aiSummary = null;
 }
 ?>
@@ -359,7 +357,7 @@ try {
       transform: translateX(0) translateY(0);
     }
 
-    /* Pe două coloane panoul se lipește de marginea exterioară a cardului, ca să nu iasă din ecran */
+    /* Two-column KPI grid: anchor the panel to the card's outer edge so it stays on screen */
     @media (max-width: 1080px) {
       .kpi-grid .kpi-card:nth-child(odd) .kpi-info-panel {
         left: 0;
@@ -375,7 +373,7 @@ try {
       .kpi-grid .kpi-card .kpi-info-btn:focus + .kpi-info-panel {
         transform: translateY(0);
       }
-      /* Cardul nu taie ce iese din el (overflow: visible), deci cercul decorativ rămâne înăuntru */
+      /* The cards use overflow: visible for the panels, so keep the glow inside them */
       .kpi-card::after {
         right: 0;
         bottom: 0;
@@ -484,7 +482,7 @@ try {
       </div>
 
       <?php if ($aiSummary): ?>
-      <!-- Rezumatul zilei (AI) -->
+      <!-- AI summary of the day -->
       <div class="card ai-summary-card">
         <div class="card-header">
           <div class="card-title-wrap">
@@ -496,7 +494,6 @@ try {
       </div>
       <?php endif; ?>
 
-      <!-- Interpretare + Acțiuni -->
       <div class="cards-grid two-col">
 
         <div class="card">
@@ -567,7 +564,6 @@ try {
 
       </div>
 
-      <!-- Grafice -->
       <div class="cards-grid two-col">
 
         <div class="card">
@@ -596,7 +592,6 @@ try {
 
       </div>
 
-      <!-- Tabel performanță pe fluxuri -->
       <div class="card" id="performanta-fluxuri">
         <div class="card-header">
           <div class="card-title-wrap">
@@ -694,7 +689,6 @@ try {
         </div>
       </div>
 
-      <!-- Situații întârziate -->
       <div class="card" id="situatii-intarziate">
         <div class="card-header">
           <div class="card-title-wrap">

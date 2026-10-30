@@ -1,9 +1,5 @@
-/* ========================================
-   MENIU LATERAL PE TELEFON ȘI TABLETĂ
-   Sub 900px sidebar-ul e ascuns în stânga (css/sidebar.css).
-   Butonul din bara de sus îl deschide; fundalul, butonul X,
-   tasta Escape sau alegerea unei pagini îl închid.
-   ======================================== */
+/* Off-canvas sidebar below 900px (css/sidebar.css). The top bar button opens it;
+   the backdrop, the close button, Escape or a link close it. */
 (function () {
   const body = document.body;
   const sidebar = document.getElementById("appSidebar");
@@ -36,12 +32,12 @@
     }
   });
 
-  // Linkurile cu ancoră (#situatii-intarziate) rămân pe aceeași pagină, deci meniul trebuie închis explicit
+  // Anchor links (#situatii-intarziate) stay on the same page, so the menu has to be closed here.
   sidebar.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", () => setOpen(false));
   });
 
-  // Pe ecran lat sidebar-ul e mereu vizibil, așa că starea „deschis" se resetează
+  // Above 900px the sidebar is always visible, so drop the open state.
   window.matchMedia("(min-width: 901px)").addEventListener("change", (e) => {
     if (e.matches) setOpen(false);
   });

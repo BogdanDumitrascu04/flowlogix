@@ -1,10 +1,7 @@
 <?php
 /*
- * csrf.php
- * Protecție CSRF pentru formularele POST.
- * Fiecare sesiune primește un token aleator, pus ca un câmp ascuns în formulare.
- * Un alt site poate trimite formularul în numele utilizatorului, dar nu poate citi
- * tokenul, așa că cererea lui e respinsă. Necesită session_start() înainte.
+ * CSRF protection for POST forms (synchronizer token pattern).
+ * Requires an active session.
  */
 
 function csrf_token(): string
@@ -15,13 +12,12 @@ function csrf_token(): string
     return $_SESSION['csrf_token'];
 }
 
-// Câmpul ascuns care se pune în fiecare <form method="POST">
 function csrf_field(): string
 {
     return '<input type="hidden" name="csrf_token" value="' . csrf_token() . '">';
 }
 
-// hash_equals compară în timp constant, ca durata comparației să nu dezvăluie tokenul
+// hash_equals() runs in constant time, so response timing cannot leak the token.
 function csrf_valid(): bool
 {
     $sent = $_POST['csrf_token'] ?? '';

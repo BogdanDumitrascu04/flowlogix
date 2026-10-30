@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// PROTECȚIE: Doar role 'tura' poate accesa
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -17,7 +16,7 @@ require_once 'flow_helpers.php';
 $currentPage = 'picking-packing-tura';
 
 $period = isset($_GET['period']) ? $_GET['period'] : 'today';
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateCondition = "created_at BETWEEN ? AND ?";
 $dateParams = flx_period_params('today');
 
@@ -92,13 +91,12 @@ function formatElapsed(?string $t): string {
 $statusRo  = ['backlog' => 'Restanță', 'in_progress' => 'În lucru', 'completed' => 'Finalizat', 'not_started' => 'Neînceput'];
 $statusCss = ['backlog' => 'badge-danger', 'in_progress' => 'badge-primary', 'completed' => 'badge-success', 'not_started' => 'badge-warning'];
 
-// Query-uri pentru pick/pack (derived logic — fără dependență de status stocat)
+// Status is derived from the dates (flow_helpers.php), not read from the stored column.
 $inWorkQuery = "SELECT COUNT(*) as total FROM pickpack_orders WHERE finished_at IS NULL AND operator_name IS NOT NULL AND operator_name <> '' AND $dateCondition";
 $completedPeriodQuery = "SELECT COUNT(*) as total FROM pickpack_orders WHERE finished_at IS NOT NULL AND $finishedAtCondition";
 $priorityQuery = "SELECT COUNT(*) as total FROM pickpack_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE() AND $dateCondition";
 $totalItemsQuery = "SELECT SUM(items_count) as total FROM pickpack_orders WHERE ($dateCondition) OR ($finishedAtCondition)";
 
-// Tabel comenzi pick/pack
 $tableQuery = "SELECT
     order_number,
     operator_name,
@@ -116,7 +114,6 @@ FROM pickpack_orders
 WHERE $dateCondition
 ORDER BY created_at DESC";
 
-// Grafic: comenzi pe operator
 $operatorQuery = "SELECT
     operator_name,
     COUNT(*) as total,
@@ -138,7 +135,6 @@ $completedPeriod = ($completedPeriodResult && $completedPeriodResult->num_rows >
 $priority = ($priorityResult && $priorityResult->num_rows > 0) ? (int)$priorityResult->fetch_assoc()['total'] : 0;
 $totalItems = ($itemsResult && $itemsResult->num_rows > 0) ? (int)$itemsResult->fetch_assoc()['total'] : 0;
 
-// Prelucrează date pentru grafic
 $operatorLabels = [];
 $operatorData = [];
 if ($operatorResult && $operatorResult->num_rows > 0) {
@@ -230,7 +226,6 @@ if ($operatorResult && $operatorResult->num_rows > 0) {
       </div>
 
       <div class="cards-grid two-col">
-        <!-- Tabel comenzi -->
         <div class="card">
           <div class="card-header">
             <div class="card-title-wrap">
@@ -284,7 +279,6 @@ if ($operatorResult && $operatorResult->num_rows > 0) {
           <?php endif; ?>
         </div>
 
-        <!-- Grafic operatori -->
         <div class="card">
           <div class="card-header">
             <div class="card-title-wrap">

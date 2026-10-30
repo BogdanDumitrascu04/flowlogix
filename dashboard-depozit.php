@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// PROTECȚIE: Doar role 'depozit' poate accesa
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -15,7 +14,7 @@ $currentPage = 'dashboard-depozit';
 require_once 'config.php';
 require_once 'flow_helpers.php';
 
-// Utilizează rolul din sesiune, nu din GET
+// The role always comes from the session, never from the query string.
 $roleKey = isset($_SESSION['role']) ? $_SESSION['role'] : 'default';
 $period = isset($_GET['period']) ? $_GET['period'] : '30d';
 
@@ -24,7 +23,7 @@ $pageSubtitle = "Privire de ansamblu asupra fluxurilor logistice, capacității 
 $primaryButtonIcon = "bx-buildings";
 $primaryButtonText = "Analiză depozit";
 
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateCondition = "created_at BETWEEN ? AND ?";
 $periodLabel = "Ultimele 30 zile";
 
@@ -45,13 +44,11 @@ if ($period === 'today') {
   $periodLabel = "Ultimele 30 zile";
 }
 
-/* KPI principale */
 $inboundTotalQuery = "SELECT COUNT(*) AS total FROM inbound_orders WHERE $dateCondition";
 $pickpackTotalQuery = "SELECT COUNT(*) AS total FROM pickpack_orders WHERE $dateCondition";
 $outboundTotalQuery = "SELECT COUNT(*) AS total FROM outbound_orders WHERE $dateCondition";
 $pickpackBacklogQuery = "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE() AND $dateCondition";
 
-/* detalii pe status */
 $inboundActiveQuery    = "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND $dateCondition";
 $inboundBacklogQuery   = "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND (expected_finished_date < CURDATE() OR DATE(created_at) < CURDATE()) AND $dateCondition";
 $inboundCompletedQuery = "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NOT NULL AND $dateCondition";
@@ -63,7 +60,6 @@ $outboundReadyQuery   = "SELECT COUNT(*) AS total FROM outbound_orders WHERE fin
 $outboundShippedQuery = "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NOT NULL AND $dateCondition";
 $outboundBacklogQuery = "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE() AND $dateCondition";
 
-/* activitate recentă */
 $recentInboundQuery = "
   SELECT reception_number AS ref_code, supplier_name AS label_text, 'Inbound' AS module_name, status, created_at
   FROM inbound_orders
@@ -88,7 +84,6 @@ $recentOutboundQuery = "
   LIMIT 3
 ";
 
-/* excepții prioritare */
 $exceptionsInboundQuery = "
   SELECT reception_number AS ref_code, 'Inbound' AS module_name, 'Recepție prioritate ridicată' AS issue_text,
          finished_at, expected_finished_date, created_at
@@ -120,7 +115,6 @@ $exceptionsOutboundQuery = "
   LIMIT 3
 ";
 
-/* grafice */
 $flowChartQuery = "
   SELECT 'Inbound' AS flow_name, (SELECT COUNT(*) FROM inbound_orders WHERE $dateCondition) AS total
   UNION ALL
@@ -164,7 +158,6 @@ $trendChartQuery = "
   GROUP BY day_label
 ";
 
-/* execuție query-uri */
 $inboundTotalResult = flx_query($conn, $inboundTotalQuery, $dateParams);
 $pickpackTotalResult = flx_query($conn, $pickpackTotalQuery, $dateParams);
 $outboundTotalResult = flx_query($conn, $outboundTotalQuery, $dateParams);
@@ -193,7 +186,6 @@ $flowChartResult = flx_query($conn, $flowChartQuery, array_merge($dateParams, $d
 $capacityChartResult = flx_query($conn, $capacityChartQuery, array_merge($dateParams, $dateParams, $dateParams, $dateParams));
 $trendChartResult = flx_query($conn, $trendChartQuery, array_merge($dateParams, $dateParams, $dateParams));
 
-/* valori */
 $inboundTotal = ($inboundTotalResult && $inboundTotalResult->num_rows > 0) ? (int)$inboundTotalResult->fetch_assoc()['total'] : 0;
 $pickpackTotal = ($pickpackTotalResult && $pickpackTotalResult->num_rows > 0) ? (int)$pickpackTotalResult->fetch_assoc()['total'] : 0;
 $outboundTotal = ($outboundTotalResult && $outboundTotalResult->num_rows > 0) ? (int)$outboundTotalResult->fetch_assoc()['total'] : 0;
@@ -211,12 +203,10 @@ $outboundBacklog = ($outboundBacklogResult && $outboundBacklogResult->num_rows >
 
 $activeAlerts = $inboundBacklog + $pickpackBacklog + $outboundBacklog;
 
-/* procente simple */
 $totalAllFlows = $inboundTotal + $pickpackTotal + $outboundTotal;
 $capacityUsed = ($totalAllFlows > 0) ? min(100, round((($inboundActive + $pickpackInProgress + $outboundReady + $outboundBacklog) / $totalAllFlows) * 100)) : 0;
 $livrariFinalizateProcent = ($outboundTotal > 0) ? round(($outboundShipped / $outboundTotal) * 100, 1) : 0;
 
-/* funcții */
 function severityCardClass($severity) {
   switch ($severity) {
     case 'high': return 'danger';
@@ -269,7 +259,6 @@ function statusBadgeClassGeneric($status) {
   }
 }
 
-/* activitate recentă combinată */
 $recentActivity = [];
 
 if ($recentInboundResult && $recentInboundResult->num_rows > 0) {
@@ -287,7 +276,6 @@ usort($recentActivity, function($a, $b) {
 });
 $recentActivity = array_slice($recentActivity, 0, 6);
 
-/* excepții */
 $exceptions = [];
 
 if ($exceptionsInboundResult && $exceptionsInboundResult->num_rows > 0) {
@@ -305,7 +293,6 @@ usort($exceptions, function($a, $b) {
 });
 $exceptions = array_slice($exceptions, 0, 6);
 
-/* grafice */
 $flowLabels = [];
 $flowData = [];
 
@@ -657,7 +644,7 @@ foreach ($trendRaw as $day => $value) {
     }
   </script>
 
-  <!-- Aplică tema din localStorage după ce body este încărcat -->
+  <!-- Saved color theme -->
   <script>
     (function() {
       const themes = ["theme-flowlogix-classic", "theme-flowlogix-ocean", "theme-flowlogix-orange", "theme-flowlogix-dark", "theme-flowlogix-ice"];

@@ -1,14 +1,10 @@
 <?php
 /*
- * daily_summary.php
- * Rezumatul zilei pentru managerul logistic: MySQL calculează cifrele zilei,
- * iar Claude Haiku le pune în 2–3 propoziții. Textul apare în dashboard-manager.php.
+ * AI summary of the day for the manager dashboard: SQL computes the figures,
+ * Claude Haiku turns them into 2-3 sentences. Run by cron (deploy/flowlogix.cron).
  *
- * Rulează din cron de câteva ori pe zi (vezi deploy/flowlogix.cron):
- *   php jobs/daily_summary.php
- *
- * Modelul primește doar cifre agregate, fără date personale. Dacă lipsește cheia API
- * sau apelul eșuează, nu se salvează nimic și dashboard-ul păstrează rezumatul anterior.
+ * The model only receives aggregated numbers, no personal data. If the API key is
+ * missing or the call fails, nothing is saved and the dashboard keeps the previous summary.
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -46,7 +42,7 @@ if (empty($anthropicApiKey)) {
     exit(0);
 }
 
-// 1. Cifrele zilei, cu aceleași reguli ca dashboard-ul managerului pentru „Azi”
+// Same rules as the manager dashboard with period=today
 $today = flx_period_params('today');
 
 function sum_row(mysqli $db, string $sql, array $params): array
@@ -87,7 +83,6 @@ $lateByDestination = flx_query($conn, "
     LIMIT 3", $today)->fetch_all(MYSQLI_ASSOC);
 $facts['destinatii_cu_intarzieri'] = $lateByDestination;
 
-// 2. Textul, scris de model din cifrele de mai sus
 $client = new Client(apiKey: $anthropicApiKey);
 
 try {
@@ -132,7 +127,7 @@ if ($summary === '') {
     exit(1);
 }
 
-// 3. Salvare: dashboard-ul afișează mereu ultimul rezumat
+// The dashboard always shows the latest row.
 $model         = SUMMARY_MODEL;
 $generatedAt   = date('Y-m-d H:i:s');
 $inputTokens   = (int)$message->usage->inputTokens;

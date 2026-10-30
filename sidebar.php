@@ -1,39 +1,34 @@
 <?php
-// Nu apelam session_start() aici - e apelat în paginile principale (admin.php, dashboard-uri, etc.)
+// Included after the page has called session_start(); expects $currentPage.
 
-// Fallback pentru $currentPage dacă nu e definită
 if (!isset($currentPage)) {
     $currentPage = '';
 }
 
-$displayName = "Utilizator";      // Numele afisat langa "Hello,"
-$userName = "Utilizator";         // Nume intern
-$userRole = "Vizitator";          // Rol afisat
-$roleKey = "default";             // Cheie rol pentru CSS
+$displayName = "Utilizator";
+$userName = "Utilizator";
+$userRole = "Vizitator";
+$roleKey = "default";
 
-// Detectează dacă suntem pe pagina admin
 $isAdminPage = isset($currentPage) && $currentPage === 'admin';
 
-// ADMIN PAGE: afișare specială
 if ($isAdminPage) {
   $displayName = "Admin";
   $userRole = "Admin";
   $roleKey = "admin";
 }
-// USER NORMAL: citire din sesie, nu din GET
+// Identity always comes from the session, never from the query string.
 else {
   if (isset($_SESSION['user_name']) && $_SESSION['user_name'] !== '') {
     $userName = htmlspecialchars($_SESSION['user_name']);
-    $displayName = $userName;  // Afișează numele utilizatorului
+    $displayName = $userName;
     $roleKey = $_SESSION['user_role'] ?? 'default';
   } elseif (isset($_SESSION['user']) && $_SESSION['user'] !== '') {
-    // Fallback: citire din $_SESSION['user']
     $userName = htmlspecialchars($_SESSION['user']);
     $displayName = $userName;
     $roleKey = $_SESSION['role'] ?? 'default';
   }
 
-  // Mapează role la etichete
   if ($roleKey === 'tura') {
     $userRole = 'Șef de tură';
   } elseif ($roleKey === 'depozit') {
@@ -49,7 +44,7 @@ function isActive($pageName, $currentPage) {
   return $pageName === $currentPage ? 'active' : '';
 }
 ?>
-<!-- Bara de sus pe telefon și tabletă: butonul deschide meniul lateral (js/sidebar.js) -->
+<!-- Phones and tablets: the menu button opens the sidebar (js/sidebar.js) -->
 <header class="mobile-topbar">
   <button type="button" class="menu-toggle" id="menuToggle" aria-label="Deschide meniul" aria-controls="appSidebar" aria-expanded="false">
     <i class='bx bx-menu'></i>
@@ -93,7 +88,6 @@ function isActive($pageName, $currentPage) {
   </div>
 
   <?php if ($isAdminPage): ?>
-    <!-- SIDEBAR SIMPLIFICAT PENTRU PAGINA ADMIN -->
     <div class="sidebar-section">
       <span class="sidebar-label">Administrare sistem</span>
       <ul class="menu-list">
@@ -107,9 +101,8 @@ function isActive($pageName, $currentPage) {
     </div>
 
   <?php else: ?>
-    <!-- SIDEBAR COMPLET PENTRU UTILIZATORI NORMALI -->
     <?php if ($roleKey === 'tura'): ?>
-      <!-- MENIU ȘEF DE TURĂ -->
+      <!-- Shift supervisor -->
       <div class="sidebar-section">
         <span class="sidebar-label">Operațiuni tură</span>
         <ul class="menu-list">
@@ -156,7 +149,7 @@ function isActive($pageName, $currentPage) {
       </div>
 
     <?php elseif ($roleKey === 'depozit'): ?>
-      <!-- MENIU ȘEF DE DEPOZIT -->
+      <!-- Warehouse manager -->
       <div class="sidebar-section">
         <span class="sidebar-label">Coordonare depozit</span>
         <ul class="menu-list">
@@ -210,7 +203,7 @@ function isActive($pageName, $currentPage) {
       </div>
 
     <?php elseif ($roleKey === 'manager'): ?>
-      <!-- MENIU MANAGER LOGISTIC -->
+      <!-- Logistics manager -->
       <div class="sidebar-section">
         <span class="sidebar-label">Operațiuni</span>
         <ul class="menu-list">
@@ -257,7 +250,6 @@ function isActive($pageName, $currentPage) {
       </div>
 
     <?php else: ?>
-      <!-- MENIU DEFAULT -->
       <div class="sidebar-section">
         <span class="sidebar-label">Navigare principală</span>
         <ul class="menu-list">
@@ -278,7 +270,7 @@ function isActive($pageName, $currentPage) {
       </div>
     <?php endif; ?>
 
-    <!-- Secțiunea "Administrare sistem" DOAR pentru admin -->
+    <!-- Admins also get user management -->
     <?php if ($roleKey === 'admin'): ?>
     <div class="sidebar-section">
       <span class="sidebar-label">Administrare sistem</span>

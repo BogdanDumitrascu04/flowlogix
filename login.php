@@ -1,12 +1,11 @@
 <?php
-// Sesiunea păstrează tokenul CSRF pe care îl trimit ambele formulare de pe pagină
+// The session holds the CSRF token sent by both forms on this page.
 session_start();
-// Pe serverul live, config.php are $demoMode = true: cardurile de rol devin intrare directă în demo
 require_once 'config.php';
 require_once 'csrf.php';
 $demoEnabled = !empty($demoMode);
 
-// Mesajul afișat după codul din ?error= (trimis de authenticate.php și demo_login.php)
+// Messages for the ?error= codes set by authenticate.php and demo_login.php.
 $loginErrors = [
     '1'       => 'Date invalide. Verifică username-ul și parola.',
     'expired' => 'Formularul a expirat. Încearcă din nou.',
@@ -15,7 +14,6 @@ $loginErrors = [
 $errorKey = is_string($_GET['error'] ?? null) ? $_GET['error'] : '';
 $errorMessage = $loginErrors[$errorKey] ?? null;
 
-// Rolurile prezentate pe pagină; în demo, fiecare card e un buton care deschide dashboard-ul rolului
 $loginRoles = [
     'tura'    => ['icon' => 'bx-time-five',   'name' => 'Șef de tură',      'desc' => 'Monitorizare activă și intervenții rapide'],
     'depozit' => ['icon' => 'bx-buildings',   'name' => 'Șef de depozit',   'desc' => 'Coordonarea fluxurilor și rapoarte operaționale'],
@@ -36,7 +34,7 @@ if ($demoEnabled) {
   <link rel="stylesheet" href="css/styles.css?v=14">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
   <style>
-    /* ── Background: branded soft blobs (orange tură + blue depozit + purple manager) ── */
+    /* Background: soft blobs in the three role colors */
     .login-body {
       background:
         radial-gradient(ellipse 75% 65% at 12% 18%, rgba(249, 115, 22, 0.12) 0%, transparent 72%),
@@ -45,7 +43,7 @@ if ($demoEnabled) {
         #f8fafc;
     }
 
-    /* ── Equal-height cards ──────────────────────────── */
+    /* Equal-height cards */
     .login-brand-inner {
       display: flex;
       flex-direction: column;
@@ -63,7 +61,7 @@ if ($demoEnabled) {
       line-height: 1.25;
     }
 
-    /* ── Logo: bare image, no decorative container ────── */
+    /* Logo */
     .login-logo-wrap {
       width: auto;
       height: auto;
@@ -82,7 +80,7 @@ if ($demoEnabled) {
       display: block;
     }
 
-    /* ── Role card icon wrap ─────────────────────────── */
+    /* Role card icon */
     .role-icon-wrap {
       width: 38px;
       height: 38px;
@@ -202,7 +200,7 @@ if ($demoEnabled) {
       color: #dc2626;
     }
 
-    /* ── Page shell: the top bar sits above the cards and scrolls with the page ── */
+    /* Page shell: the top bar scrolls with the page */
     .login-shell {
       width: 100%;
       max-width: 1196px;
@@ -210,7 +208,7 @@ if ($demoEnabled) {
       flex-direction: column;
     }
 
-    /* ── Top-right bar: language switch + source code ── */
+    /* Top bar: language switch and source link */
     .login-topbar {
       display: flex;
       justify-content: flex-end;
@@ -270,7 +268,7 @@ if ($demoEnabled) {
       color: #ffffff;
     }
 
-    /* ── Right card: demo note above the classic sign-in ── */
+    /* Right card: demo note above the sign-in form */
     .login-form-header h2 {
       font-size: 20px;
     }
@@ -293,7 +291,7 @@ if ($demoEnabled) {
       margin-top: 1px;
     }
 
-    /* ── Input wrap: allow focus ring to paint outside ── */
+    /* Lets the focus ring paint outside the input */
     .input-wrap {
       overflow: visible;
     }
@@ -306,7 +304,7 @@ if ($demoEnabled) {
       padding-left: 42px;
     }
 
-    /* ── Responsive ──────────────────────────────────── */
+    /* Responsive */
     @media (max-width: 600px) {
       .login-logo-wrap img {
         width: 52px;
@@ -338,7 +336,7 @@ if ($demoEnabled) {
   <?php endif; ?>
 
   <div class="login-container">
-    <!-- BRANDING PANEL (LEFT) -->
+    <!-- Branding panel (left) -->
     <div class="login-brand-section">
       <div class="login-brand-inner">
         <div class="login-brand-top">
@@ -397,7 +395,7 @@ if ($demoEnabled) {
       </div>
     </div>
 
-    <!-- LOGIN FORM PANEL (RIGHT) -->
+    <!-- Sign-in panel (right) -->
     <div class="login-form-section">
       <div class="login-form-card">
         <div class="login-form-header">
@@ -481,7 +479,6 @@ if ($demoEnabled) {
   </div>
 
   <script>
-    // Toggle Password Visibility
     const passwordToggle = document.getElementById('passwordToggle');
     const passwordInput = document.getElementById('userPassword');
 
@@ -491,13 +488,11 @@ if ($demoEnabled) {
         const isPassword = passwordInput.type === 'password';
         passwordInput.type = isPassword ? 'text' : 'password';
 
-        // Update icon
         const icon = this.querySelector('i');
         icon.className = isPassword ? 'bx bx-show' : 'bx bx-hide';
       });
     }
 
-    // Focus effect on inputs
     const inputs = document.querySelectorAll('.form-input');
     inputs.forEach(input => {
       input.addEventListener('focus', function() {

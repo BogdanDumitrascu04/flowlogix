@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// PROTECȚIE: Doar role 'tura' poate accesa
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -18,9 +17,8 @@ $currentPage = 'dashboard-tura';
 
 $userName = isset($_SESSION['user']) ? htmlspecialchars($_SESSION['user']) : 'Utilizator';
 
-/* Filtrare perioadă */
 $period = isset($_GET['period']) ? $_GET['period'] : 'today';
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateCondition = "created_at BETWEEN ? AND ?";
 $periodLabel = "";
 
@@ -48,7 +46,6 @@ switch ($period) {
         break;
 }
 
-/* KPI — derived logic */
 $inboundProcessingQuery  = "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND $dateCondition";
 $pickpackInProgressQuery = "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND operator_name IS NOT NULL AND operator_name <> '' AND $dateCondition";
 $outboundDelayedQuery    = "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE() AND $dateCondition";
@@ -56,7 +53,6 @@ $backlogInboundQuery     = "SELECT COUNT(*) AS total FROM inbound_orders WHERE f
 $backlogPickpackQuery    = "SELECT COUNT(*) AS total FROM pickpack_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE() AND $dateCondition";
 $backlogOutboundQuery    = "SELECT COUNT(*) AS total FROM outbound_orders WHERE finished_at IS NULL AND DATE(planned_date) < CURDATE() AND $dateCondition";
 
-/* activitate recentă: ultimele 5 evenimente simple */
 $recentInboundQuery = "
   SELECT reception_number AS ref_code, supplier_name AS label_text, 'inbound' AS source_type,
          finished_at, expected_finished_date, created_at
@@ -81,7 +77,6 @@ $recentOutboundQuery = "
   LIMIT 3
 ";
 
-/* excepții — derived logic */
 $exceptionsInboundQuery = "
   SELECT reception_number AS ref_code, 'Inbound' AS module_name, 'Restanță — termen depășit' AS issue_text,
          finished_at, expected_finished_date, created_at
@@ -503,7 +498,7 @@ $exceptions = array_slice($exceptions, 0, 6);
     </div>
   </main>
 
-  <!-- Aplică tema din localStorage după ce body este încărcat -->
+  <!-- Saved color theme -->
   <script>
     (function() {
       const themes = ["theme-flowlogix-classic", "theme-flowlogix-ocean", "theme-flowlogix-orange", "theme-flowlogix-dark", "theme-flowlogix-ice"];

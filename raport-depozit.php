@@ -16,9 +16,8 @@ require_once 'flow_helpers.php';
 
 $userName = htmlspecialchars($_SESSION['user'] ?? '—');
 
-/* Perioadă */
 $period        = isset($_GET['period']) ? $_GET['period'] : '30d';
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateCondition = "created_at BETWEEN ? AND ?";
 $dateParams = flx_period_params('30d');
 $periodLabel   = "Ultimele 30 zile";
@@ -66,7 +65,6 @@ $outboundShipped = rpt_dep_count($conn, "SELECT COUNT(*) AS total FROM outbound_
 
 $interventii = $inboundBacklog + $pickpackBacklog + $outboundBacklog;
 
-/* Blocaje — top 10 */
 $blockersQuery = "
 SELECT module, ref_code, context_text, problem_text, due_date, days_overdue
 FROM (
@@ -305,7 +303,7 @@ $generatedAt = date('d.m.Y H:i');
       border-radius: 6px;
     }
 
-    /* Telefon: raportul se citește pe ecran îngust; la printare rămâne pe A4 */
+    /* Phones: screen-only layout, printing stays on A4 */
     @media screen and (max-width: 640px) {
       body { padding: 12px; }
       .page { padding: 20px 16px; }
@@ -361,7 +359,6 @@ $generatedAt = date('d.m.Y H:i');
       </div>
     </div>
 
-    <!-- Secțiunea 1: KPI-uri principale -->
     <div class="section">
       <div class="section-title">KPI-uri principale</div>
       <div class="kpi-grid">
@@ -384,7 +381,6 @@ $generatedAt = date('d.m.Y H:i');
       </div>
     </div>
 
-    <!-- Secțiunea 2: Rezumat pe fluxuri -->
     <div class="section">
       <div class="section-title">Rezumat pe fluxuri</div>
       <div class="table-scroll"><table>
@@ -441,7 +437,6 @@ $generatedAt = date('d.m.Y H:i');
       </table></div>
     </div>
 
-    <!-- Secțiunea 3: Restanțe și blocaje -->
     <div class="section">
       <div class="section-title">Restanțe și blocaje</div>
       <?php if ($blockersResult && $blockersResult->num_rows > 0): ?>
@@ -483,7 +478,6 @@ $generatedAt = date('d.m.Y H:i');
       <?php endif; ?>
     </div>
 
-    <!-- Secțiunea 4: Observație -->
     <div class="section">
       <div class="section-title">Observație</div>
       <div class="observation">

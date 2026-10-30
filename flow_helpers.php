@@ -1,17 +1,13 @@
 <?php
 
-// ============================================================
-// QUERY HELPERS
-// ============================================================
-
-// Limitele folosite când o fereastră de timp nu are capăt (ex. „ultimele 7 zile”).
+// Bounds for open-ended ranges such as "last 7 days".
 const FLX_NO_LOWER_BOUND = '1000-01-01 00:00:00';
 const FLX_NO_UPPER_BOUND = '9999-12-31 23:59:59';
 
 /**
- * Valorile pentru un filtru de perioadă de forma `coloana BETWEEN ? AND ?`.
- * 'today' și 'month' sunt intervale închise; '7d' și '30d' sunt ferestre glisante
- * fără limită superioară, la fel ca vechile filtre `>= NOW() - INTERVAL n DAY`.
+ * Returns the two values for a `column BETWEEN ? AND ?` period filter.
+ * 'today' and 'month' are closed ranges; '7d' and '30d' start N days ago
+ * and have no upper bound.
  */
 function flx_period_params(string $period): array
 {
@@ -38,8 +34,8 @@ function flx_period_params(string $period): array
 }
 
 /**
- * Execută o interogare ca prepared statement. Valorile din $params înlocuiesc,
- * în ordine, semnele `?` din $sql și nu sunt lipite niciodată în textul SQL.
+ * Runs $sql as a prepared statement, binding $params to the `?` placeholders in order.
+ * All values are bound as strings; MySQL converts them to the column type.
  */
 function flx_query(mysqli $db, string $sql, array $params = []): mysqli_result|false
 {
@@ -60,15 +56,10 @@ function flx_query(mysqli $db, string $sql, array $params = []): mysqli_result|f
     return $stmt->get_result();
 }
 
-// ============================================================
-// CSV EXPORT
-// ============================================================
-
 /**
- * Scrie un rând CSV (separator ;) din care Excel nu poate executa nimic.
- * Excel tratează ca formulă o celulă care începe cu = + - @ (sau tab / Enter),
- * deci un furnizor numit „=HYPERLINK(...)” ar rula la deschiderea fișierului.
- * Un apostrof în față păstrează textul ca text. Numerele negative rămân neschimbate.
+ * Writes one CSV row with ';' as separator, guarded against CSV injection:
+ * text starting with = + - @, tab or CR gets a leading apostrophe, so Excel
+ * shows it as text instead of evaluating it. Numeric values are left as they are.
  */
 function flx_csv_row($handle, array $row): void
 {
@@ -82,9 +73,7 @@ function flx_csv_row($handle, array $row): void
     fputcsv($handle, $safeRow, ';');
 }
 
-// ============================================================
-// DERIVED LOGIC HELPERS (migration step — do not query DB)
-// ============================================================
+// Status rules derived from the order dates. Pure functions: they never query the database.
 
 /**
  * Parse a DATE or DATETIME string to a midnight DateTime.

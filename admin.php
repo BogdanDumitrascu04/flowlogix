@@ -4,7 +4,6 @@ $currentPage = 'admin';
 require_once 'config.php';
 require_once 'csrf.php';
 
-// PROTECȚIE: Doar admin poate accesa
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -14,29 +13,25 @@ if ($_SESSION['role'] !== 'admin') {
     exit;
 }
 
-// Procesare CRUD
 $action = $_REQUEST['action'] ?? '';
 
-// În demo-ul public (config.php: $demoMode = true) utilizatorii pot fi văzuți, dar nu modificați
+// The public demo shows the users but never changes them.
 if (!empty($demoMode) && in_array($action, ['add', 'edit', 'delete'], true)) {
     header("Location: admin.php?demo=readonly");
     exit;
 }
 
-// Orice modificare (POST) trebuie să vină din formularele acestei pagini, care poartă tokenul CSRF
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && !csrf_valid()) {
     http_response_code(403);
     exit('Cererea a fost respinsă: token de securitate invalid. Reîncarcă pagina și încearcă din nou.');
 }
 
-// ADĂUGARE utilizator
 if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $password = trim($_POST['password'] ?? '');
     $role = trim($_POST['role'] ?? '');
 
     if ($name !== '' && $password !== '' && $role !== '') {
-        // În baza de date se salvează doar hash-ul parolei, niciodată parola în clar
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
         $sql = "INSERT INTO users (name, password, role) VALUES (?, ?, ?)";
         $stmt = $conn->prepare($sql);
@@ -48,7 +43,6 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// EDITARE utilizator
 if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = intval($_POST['id'] ?? 0);
     $name = trim($_POST['name'] ?? '');
@@ -56,13 +50,12 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($id > 0 && $name !== '') {
         if ($password !== '') {
-            // Parolă nouă: se salvează hash-ul ei
             $passwordHash = password_hash($password, PASSWORD_DEFAULT);
             $sql = "UPDATE users SET name = ?, password = ? WHERE id = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("ssi", $name, $passwordHash, $id);
         } else {
-            // Câmp gol: parola actuală rămâne neschimbată
+            // An empty password field keeps the current password.
             $sql = "UPDATE users SET name = ? WHERE id = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("si", $name, $id);
@@ -74,7 +67,6 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ȘTERGERE utilizator
 if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = intval($_POST['id'] ?? 0);
     if ($id > 0) {
@@ -88,7 +80,6 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Citire utilizatori din DB
 $users = [];
 $sql = "SELECT id, name, role FROM users ORDER BY role, name";
 $result = $conn->query($sql);
@@ -103,7 +94,6 @@ if ($result) {
     }
 }
 
-// Mapare role la etichete
 $roleLabels = [
     'tura' => 'Șef de tură',
     'depozit' => 'Șef de depozit',
@@ -252,7 +242,7 @@ $roleColors = [
             font-size: 0.95rem;
         }
 
-        /* MODAL */
+        /* Modals */
         .modal {
             display: none;
             position: fixed;
@@ -487,7 +477,7 @@ $roleColors = [
             filter: brightness(0.92);
         }
 
-        /* Butonul trece sub text, altfel nu încape lângă el pe telefon */
+        /* Phones: the button goes below the text */
         @media (max-width: 768px) {
             .demo-card {
                 flex-direction: column;
@@ -632,7 +622,7 @@ $roleColors = [
         </div>
     </main>
 
-    <!-- MODAL ADĂUGARE -->
+    <!-- Add user -->
     <div class="modal" id="addModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -662,7 +652,7 @@ $roleColors = [
         </div>
     </div>
 
-    <!-- MODAL EDITARE -->
+    <!-- Edit user -->
     <div class="modal" id="editModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -698,7 +688,6 @@ $roleColors = [
     </div>
 
     <script>
-        // Deschide modal adăugare
         function openAddModal(role) {
             document.getElementById('addRole').value = role;
             document.getElementById('addName').value = '';
@@ -706,7 +695,6 @@ $roleColors = [
             document.getElementById('addModal').classList.add('open');
         }
 
-        // Deschide modal editare
         function openEditModal(id, name) {
             document.getElementById('editId').value = id;
             document.getElementById('editName').value = name;
@@ -716,7 +704,6 @@ $roleColors = [
             document.getElementById('editModal').classList.add('open');
         }
 
-        // Toggle vizibilitate parolă în modalul de editare
         function toggleEditPassword() {
             const input = document.getElementById('editPassword');
             const icon  = document.getElementById('editPasswordIcon');
@@ -729,12 +716,10 @@ $roleColors = [
             }
         }
 
-        // Închide modal
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('open');
         }
 
-        // Ștergere utilizator cu confirmare
         function deleteUser(id, name) {
             if (confirm(`Ești sigur că vrei să ștergi utilizatorul "${name}"?`)) {
                 const form = document.createElement('form');
@@ -745,7 +730,7 @@ $roleColors = [
             }
         }
 
-        // Închide modal la click pe background
+        // A click on the dimmed background closes the modal.
         document.addEventListener('click', function(event) {
             const addModal = document.getElementById('addModal');
             const editModal = document.getElementById('editModal');
@@ -753,7 +738,7 @@ $roleColors = [
             if (event.target === editModal) editModal.classList.remove('open');
         });
 
-        // Arată mesaj de succes
+        // ?success= is set by the redirect after add / edit / delete.
         document.addEventListener('DOMContentLoaded', function() {
             const params = new URLSearchParams(window.location.search);
             const success = params.get('success');

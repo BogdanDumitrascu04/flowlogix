@@ -1,6 +1,4 @@
-/* ========================================
-   VARIABILE CSS - TEMA IMPLICITA (CLASSIC)
-   ======================================== */
+/* Design tokens: default theme (Classic) */
 :root {
   --bg: #f4f7fb;
   --surface: #ffffff;
@@ -23,7 +21,7 @@
   --radius-md: 18px;
   --radius-sm: 14px;
 
-  /* Sidebar - tema implicita */
+  /* Sidebar */
   --sidebar-bg: #0b1220;
   --sidebar-surface: rgba(255, 255, 255, 0.04);
   --sidebar-border: rgba(255, 255, 255, 0.08);
@@ -35,17 +33,15 @@
   --sidebar-icon-hover: #7db4ff;
   --sidebar-card: rgba(255, 255, 255, 0.05);
   
-  /* Culori suplimentare modernizate */
+  /* Accent colors */
   --accent-cyan: #06b6d4;
   --accent-orange: #ea6a0b;
   --accent-purple: #a855f7;
 }
 
-/* ========================================
-   TEME
-   ======================================== */
+/* Themes */
 
-/* Backup: Aplică teme și pe html element dacă body nu e disponibil */
+/* Also matched on <html>, which app.js sets before <body> exists */
 html[data-theme="theme-flowlogix-classic"] {
   --bg: #f4f7fb;
   --surface: #ffffff;
@@ -81,7 +77,7 @@ html[data-theme="theme-flowlogix-classic"] {
   --role-manager-text: #d8b4fe;
 }
 
-/* TEMA: FlowLogix Ocean */
+/* Theme: Ocean */
 html[data-theme="theme-flowlogix-ocean"],
 body.theme-flowlogix-ocean {
   --bg: #f0f9fc;
@@ -120,7 +116,7 @@ body.theme-flowlogix-ocean {
   --role-manager-text: #93c5fd;
 }
 
-/* TEMA: FlowLogix Orange */
+/* Theme: Orange */
 html[data-theme="theme-flowlogix-orange"],
 body.theme-flowlogix-orange {
   --bg: #fffbf0;
@@ -159,7 +155,7 @@ body.theme-flowlogix-orange {
   --role-manager-text: #ffb84d;
 }
 
-/* TEMA: FlowLogix Dark */
+/* Theme: Dark */
 html[data-theme="theme-flowlogix-dark"],
 body.theme-flowlogix-dark {
   --bg: #1a1a1a;
@@ -178,7 +174,7 @@ body.theme-flowlogix-dark {
   --danger: #ef4444;
   --danger-soft: rgba(239, 68, 68, 0.15);
 
-  /* Sidebar - Dark (mai deschis decât light dark) */
+  /* Sidebar - Dark */
   --sidebar-bg: #0f0f0f;
   --sidebar-surface: rgba(59, 130, 246, 0.08);
   --sidebar-border: rgba(59, 130, 246, 0.12);
@@ -198,7 +194,7 @@ body.theme-flowlogix-dark {
   --role-manager-text: #d8b4fe;
 }
 
-/* TEMA: FlowLogix Minimal (singura tema cu sidebar light) */
+/* Theme: Minimal, the only one with a light sidebar */
 html[data-theme="theme-flowlogix-ice"],
 body.theme-flowlogix-ice {
   --bg: #fafbfc;
@@ -217,7 +213,7 @@ body.theme-flowlogix-ice {
   --danger: #dc2626;
   --danger-soft: rgba(220, 38, 38, 0.12);
 
-  /* Sidebar - LIGHT (singura tema cu sidebar luminos) */
+  /* Sidebar - light */
   --sidebar-bg: #ffffff;
   --sidebar-surface: rgba(15, 23, 42, 0.04);
   --sidebar-border: rgba(15, 23, 42, 0.08);
@@ -228,7 +224,7 @@ body.theme-flowlogix-ice {
   --sidebar-icon: #64748b;
   --sidebar-icon-hover: #1e293b;
   --sidebar-card: rgba(15, 23, 42, 0.03);
-  /* Role colors - Minimal theme (mai saturate pentru contrast pe light) */
+  /* Role colors - Minimal theme, more saturated for contrast on a light background */
   --role-tura-bg: rgba(234, 88, 12, 0.12);
   --role-tura-text: #c2410c;
   --role-depozit-bg: rgba(37, 99, 235, 0.12);
@@ -237,9 +233,7 @@ body.theme-flowlogix-ice {
   --role-manager-text: #7e22ce;
 }
 
-/* ========================================
-   BAZĂ
-   ======================================== */
+/* Base */
 html {
   scroll-behavior: smooth;
 }
@@ -270,9 +264,7 @@ a {
   color: inherit;
 }
 
-/* ========================================
-   LAYOUT
-   ======================================== */
+/* Layout */
 .main {
   margin-left: 280px;
   min-height: 100vh;
@@ -286,9 +278,7 @@ a {
   gap: 20px;
 }
 
-/* ========================================
-   TOPBAR
-   ======================================== */
+/* Top bar */
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -320,9 +310,7 @@ a {
   justify-content: flex-end;
 }
 
-/* ========================================
-   CONTROALE
-   ======================================== */
+/* Controls */
 .control-chip,
 .control-select,
 .control-button,
@@ -343,7 +331,7 @@ a {
   min-width: 150px;
 }
 
-/* ----- SELECT custom (drop default arrow, add chevron, adauga starile) ----- */
+/* Custom select: own chevron instead of the native arrow, with hover and focus states */
 .control-select {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -403,9 +391,7 @@ a {
   font-weight: 600;
 }
 
-/* ========================================
-   BREADCRUMB
-   ======================================== */
+/* Breadcrumb */
 .breadcrumb {
   display: flex;
   align-items: center;
@@ -419,9 +405,7 @@ a {
   color: var(--text);
 }
 
-/* ========================================
-   STATUS PILLS
-   ======================================== */
+/* Status pills */
 .status-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -468,9 +452,7 @@ a {
 .dot-danger { background: var(--danger); }
 .dot-primary { background: var(--primary); }
 
-/* ========================================
-   CARDURI
-   ======================================== */
+/* Cards */
 .cards-grid {
   display: grid;
   gap: 18px;
@@ -496,7 +478,7 @@ a {
   padding: 16px 18px;
 }
 
-/* Cardurile din three-col devin flex column ca CTA-ul (.card-cta) sa se alinieze la baza */
+/* Flex column, so the .card-cta buttons line up at the bottom */
 .cards-grid.three-col > .card {
   display: flex;
   flex-direction: column;
@@ -507,7 +489,7 @@ a {
   padding-top: 12px;
 }
 
-/* ====== MODULE NAVIGATION CARDS (Inbound / Pick-Pack / Outbound) ====== */
+/* Module navigation cards (Inbound / Pick-Pack / Outbound) */
 .module-nav-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -624,9 +606,7 @@ a {
 .tag-danger { color: var(--danger); background: var(--danger-soft); border-color: transparent; }
 .tag-primary { color: var(--primary); background: var(--primary-soft); border-color: transparent; }
 
-/* ========================================
-   KPI CARDS
-   ======================================== */
+/* KPI cards */
 .kpi-card {
   position: relative;
   overflow: hidden;
@@ -685,9 +665,7 @@ a {
   margin-top: 4px;
 }
 
-/* ========================================
-   TABEL & LISTE
-   ======================================== */
+/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -713,9 +691,7 @@ tr:hover {
   background: var(--surface-2);
 }
 
-/* ========================================
-   BADGE-URI
-   ======================================== */
+/* Badges */
 .small-badge {
   display: inline-block;
   padding: 6px 10px;
@@ -744,9 +720,7 @@ tr:hover {
   color: var(--danger);
 }
 
-/* ========================================
-   MODAL
-   ======================================== */
+/* Modal */
 .modal {
   position: fixed;
   inset: 0;
@@ -797,9 +771,7 @@ tr:hover {
   color: var(--text);
 }
 
-/* ========================================
-   SETARI & RAPOARTE
-   ======================================== */
+/* Settings and reports */
 .settings-grid,
 .report-grid {
   display: grid;
@@ -830,9 +802,7 @@ tr:hover {
   font-size: 0.9rem;
 }
 
-/* ========================================
-   TEME PREVIEW
-   ======================================== */
+/* Theme previews */
 .theme-preview-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -930,9 +900,7 @@ tr:hover {
   letter-spacing: 0.5px;
 }
 
-/* ========================================
-   SUMMARY LIST + PROFILE INFO
-   ======================================== */
+/* Summary list and profile */
 .summary-list {
   display: flex;
   flex-direction: column;
@@ -963,7 +931,7 @@ tr:hover {
   font-weight: 500;
 }
 
-/* Profil modern */
+/* Profile */
 .settings-column {
   display: flex;
   flex-direction: column;
@@ -1108,9 +1076,7 @@ tr:hover {
   font-weight: 600;
 }
 
-/* ========================================
-   PROGRESS
-   ======================================== */
+/* Progress bars */
 .progress-list {
   display: flex;
   flex-direction: column;
@@ -1138,9 +1104,7 @@ tr:hover {
   background: linear-gradient(90deg, var(--primary), rgba(37, 165, 235, 0.6));
 }
 
-/* ========================================
-   NOTIFICARI
-   ======================================== */
+/* Notifications */
 .notification-dropdown {
   position: absolute;
   top: 48px;
@@ -1175,9 +1139,7 @@ tr:hover {
   border-bottom: none;
 }
 
-/* ========================================
-   LINII SI SEPARATOARE
-   ======================================== */
+/* Text helpers */
 .text-muted {
   color: var(--muted);
 }
@@ -1188,9 +1150,7 @@ tr:hover {
   margin-top: 8px;
 }
 
-/* ========================================
-   RESPONSIVE
-   ======================================== */
+/* Responsive */
 @media (max-width: 1080px) {
   .main {
     margin-left: 92px;
@@ -1201,7 +1161,7 @@ tr:hover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  /* minmax(0, 1fr), nu 1fr: altfel un tabel lat împinge coloana peste marginea ecranului */
+  /* minmax(0, 1fr), not 1fr: otherwise a wide table stretches the column past the screen edge */
   .alert-grid,
   .cards-grid.two-col,
   .cards-grid.three-col,
@@ -1215,14 +1175,14 @@ tr:hover {
   }
 }
 
-/* Telefon și tabletă: sidebar-ul e ascuns (css/sidebar.css), conținutul ia toată lățimea */
+/* Phones and tablets: the sidebar is off-canvas (css/sidebar.css), so content uses the full width */
 @media (max-width: 900px) {
   .main {
     margin-left: 0;
     padding: 20px;
   }
 
-  /* Ancorele din meniu nu ajung sub bara de sus fixă */
+  /* Keeps anchor targets clear of the sticky top bar */
   html {
     scroll-padding-top: 76px;
   }
@@ -1292,7 +1252,7 @@ tr:hover {
   }
 }
 
-/* Telefon */
+/* Phones */
 @media (max-width: 560px) {
   .main {
     padding: 14px 12px;
@@ -1323,7 +1283,7 @@ tr:hover {
     gap: 12px;
   }
 
-  /* KPI pe două coloane: iconița trece deasupra etichetei, ca textul să aibă toată lățimea cardului */
+  /* Two KPI columns: the icon moves above the label, so the label gets the full card width */
   .kpi-card {
     padding: 14px 10px;
   }
@@ -1340,7 +1300,7 @@ tr:hover {
     width: 38px;
     height: 38px;
     font-size: 1.15rem;
-    /* marginile umplu restul rândului, deci eticheta coboară dedesubt */
+    /* the margins fill the row, which pushes the label onto the next line */
     margin: 0 calc((100% - 38px) / 2);
   }
 
@@ -1371,21 +1331,21 @@ tr:hover {
     white-space: nowrap;
   }
 
-  /* Coduri și date pe un singur rând; tabelul se derulează lateral în card */
+  /* Codes and dates stay on one line; the table scrolls sideways inside the card */
   .table-wrap td,
   .table-scroll td {
     white-space: nowrap;
   }
 }
 
-/* Tabelele lungi se derulează în containerul lor, nu lărgesc pagina */
+/* Wide tables scroll inside their container instead of widening the page */
 .table-wrap,
 .table-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-/* ===== LOGIN PAGE LAYOUT ===== */
+/* Login page */
 .login-body {
   margin: 0;
   min-height: 100vh;
@@ -1404,10 +1364,10 @@ tr:hover {
   margin-left: 0 !important;
 }
 
-/* ===== CONTAINER ===== */
+/* Container */
 .login-container {
   display: flex;
-  align-items: stretch;   /* sectiunile primesc inaltimea cardului mai mare */
+  align-items: stretch;   /* both panels take the height of the taller card */
   justify-content: center;
   gap: 28px;
   padding: 40px 24px;
@@ -1429,7 +1389,7 @@ tr:hover {
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
 }
 
-/* ===== BRAND TOP (logo + nume) ===== */
+/* Brand header (logo and name) */
 .login-brand-top {
   display: flex;
   align-items: center;
@@ -1458,7 +1418,7 @@ tr:hover {
   color: #6b7280;
 }
 
-/* ===== BRAND CONTENT ===== */
+/* Brand content */
 .login-brand-content h2 {
   font-size: 22px;
   font-weight: 700;
@@ -1475,7 +1435,7 @@ tr:hover {
   margin-bottom: 24px;
 }
 
-/* ===== ROLE CARDS ===== */
+/* Role cards */
 .login-role-preview {
   display: flex;
   flex-direction: column;
@@ -1518,7 +1478,7 @@ tr:hover {
   color: #6b7280;
 }
 
-/* ===== RIGHT SIDE ===== */
+/* Right side */
 .login-form-section {
   flex: 0 0 560px;
   max-width: 560px;
@@ -1526,7 +1486,7 @@ tr:hover {
   justify-content: center;
 }
 
-/* ===== LOGIN CARD ===== */
+/* Login card */
 .login-form-card {
   width: 100%;
   background: #ffffff;
@@ -1535,7 +1495,7 @@ tr:hover {
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
-  justify-content: center; /* centreaza tot continutul vertical in card */
+  justify-content: center; /* centers the content vertically */
   min-height: 520px;
 }
 
@@ -1555,7 +1515,7 @@ tr:hover {
   line-height: 1.5;
 }
 
-/* ===== ALERT ===== */
+/* Alert */
 .login-alert {
   display: flex;
   gap: 8px;
@@ -1570,7 +1530,7 @@ tr:hover {
   color: #dc2626;
 }
 
-/* ===== FORM ===== */
+/* Form */
 .form-group {
   margin-bottom: 16px;
 }
@@ -1583,7 +1543,7 @@ tr:hover {
   display: block;
 }
 
-/* INPUT WRAP */
+/* Input wrap */
 .input-wrap {
   position: relative;
   overflow: hidden;
@@ -1597,7 +1557,7 @@ tr:hover {
   color: #9ca3af;
 }
 
-/* INPUT */
+/* Input */
 .form-input {
   width: 100%;
   height: 44px;
@@ -1615,7 +1575,7 @@ tr:hover {
 }
 
 .form-input:hover:not(:focus) {
-  border-color: #d1d5db;          /* feedback la hover inainte de focus */
+  border-color: #d1d5db;          /* hover feedback before focus */
   background: #f3f4f6;
 }
 
@@ -1630,7 +1590,7 @@ tr:hover {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
-/* PASSWORD TOGGLE */
+/* Password toggle */
 .password-toggle {
   position: absolute;
   right: 10px;
@@ -1660,7 +1620,7 @@ tr:hover {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
 }
 
-/* ===== BUTTON ===== */
+/* Button */
 .login-submit-btn {
   width: 100%;
   height: 44px;
@@ -1676,7 +1636,7 @@ tr:hover {
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.18);  /* subtle depth pe starea default */
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.18);  /* subtle depth in the default state */
   transition: all 0.15s ease;
 }
 
@@ -1696,7 +1656,7 @@ tr:hover {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
 }
 
-/* ===== HELPER INFO ===== */
+/* Helper info */
 .login-helper-info {
   display: flex;
   align-items: center;
@@ -1721,7 +1681,7 @@ tr:hover {
   flex-shrink: 0;
 }
 
-/* ===== RESPONSIVE ===== */
+/* Responsive */
 @media (max-width: 1200px) {
   .login-brand-section,
   .login-form-section {
@@ -1747,14 +1707,12 @@ tr:hover {
   }
 
   .login-form-card {
-    justify-content: flex-start; /* pe mobil cardul are naltime naturala, nu mai e nevoie de centrare */
+    justify-content: flex-start; /* natural height on phones, no vertical centering needed */
     min-height: auto;
   }
 }
 
-/* ========================================
-   MONITORING GRID (Tabel + Chart)
-   ======================================== */
+/* Monitoring grid (table + chart) */
 .monitoring-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;

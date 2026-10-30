@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// PROTECȚIE: Utilizatorul trebuie să fie autentificat
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -9,7 +8,6 @@ if (!isset($_SESSION['user'])) {
 
 $currentPage = 'setari';
 
-// Configurare role-uri
 $roles = [
   'default' => [
     'title' => 'Setări',
@@ -37,14 +35,12 @@ $roles = [
   ]
 ];
 
-// Obține rolul din sesiune, nu din GET
+// The role always comes from the session, never from the query string.
 $roleKey = isset($_SESSION['role']) && isset($roles[$_SESSION['role']]) ? $_SESSION['role'] : 'default';
 $role = $roles[$roleKey];
 
-// Nume utilizator (din sesiune sau demo)
 $userName = isset($_SESSION['user']) ? $_SESSION['user'] : 'Admin User';
 
-// Mapează theme-uri pentru afișare
 $themeNames = [
   'theme-flowlogix-classic' => 'FlowLogix Classic',
   'theme-flowlogix-ocean' => 'FlowLogix Ocean',
@@ -85,7 +81,6 @@ $themeNames = [
       </div>
 
       <div class="settings-grid">
-        <!-- COLOANĂ STÂNGA: Temă interfață -->
         <div class="settings-column">
           <div class="card card-theme">
             <div class="card-header">
@@ -142,7 +137,6 @@ $themeNames = [
           </div>
         </div>
 
-        <!-- COLOANĂ DREAPTA: Profil curent -->
         <div class="settings-column">
           <div class="card card-profile">
             <div class="card-header">
@@ -192,13 +186,11 @@ $themeNames = [
     </div>
   </main>
 
-  <!-- Inițializare temă și event listeners -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const themeCards = document.querySelectorAll('[data-theme-card]');
       const savedTheme = localStorage.getItem('flowlogix_theme') || 'theme-flowlogix-classic';
 
-      // Funcție pentru actualizarea labelului temei
       function updateThemeLabel(themeName) {
         const labelEl = document.getElementById('activeThemeLabel');
         if (labelEl) {
@@ -213,7 +205,6 @@ $themeNames = [
         }
       }
 
-      // Inițializează UI-ul cu tema salvată
       themeCards.forEach(card => {
         if (card.dataset.themeCard === savedTheme) {
           card.classList.add('active-theme');
@@ -222,17 +213,14 @@ $themeNames = [
         updateThemeLabel(savedTheme);
       });
 
-      // Adaugă event listeners pentru click pe cardurile de temă
       themeCards.forEach(card => {
         card.addEventListener('click', () => {
           const themeName = card.dataset.themeCard;
           
-          // Aplică tema
           if (typeof changeTheme === 'function') {
             changeTheme(themeName);
           }
 
-          // Actualizează UI
           themeCards.forEach(c => {
             c.classList.remove('active-theme');
             c.querySelector('.theme-badge').style.display = 'none';
@@ -240,7 +228,6 @@ $themeNames = [
           card.classList.add('active-theme');
           card.querySelector('.theme-badge').style.display = 'block';
 
-          // Actualizează label
           updateThemeLabel(themeName);
         });
       });

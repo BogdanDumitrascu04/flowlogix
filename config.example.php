@@ -2,15 +2,13 @@
 
 date_default_timezone_set('Europe/Bucharest');
 
-// Copiază fișierul ca config.php și completează datele bazei de date.
-// Valorile de mai jos sunt cele implicite într-o instalare nouă de WampServer.
+// Copy to config.php. The defaults match a fresh WampServer install.
 $host = "localhost";
 $dbname = "flowlogix";
 $username = "root";
 $password = "";
 
-// true doar pe serverul demo public: pagina de login arată intrarea cu un click pe rol,
-// iar utilizatorii din pagina de administrare nu pot fi modificați
+// Public demo server only: enables one-click role login and makes user management read-only.
 $demoMode = false;
 
 $conn = new mysqli($host, $username, $password, $dbname);

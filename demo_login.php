@@ -1,9 +1,7 @@
 <?php
 /*
- * demo_login.php
- * Intrare cu un click pentru vizitatorii demo-ului public: alegi un rol și ajungi
- * direct în dashboard-ul lui, fără parolă.
- * Funcționează doar dacă în config.php e setat $demoMode = true (doar pe serverul live).
+ * One-click role login for visitors of the public demo, without a password.
+ * Disabled unless config.php sets $demoMode = true (live server only).
  */
 session_start();
 require_once 'config.php';
@@ -23,16 +21,15 @@ if (empty($demoMode) || $_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($demoHom
     exit;
 }
 
-// Cardurile de rol sunt un formular: fără tokenul de pe login.php, cererea nu vine de acolo
 if (!csrf_valid()) {
     header("Location: login.php?error=expired");
     exit;
 }
 
-// Sesiune nouă, ca un vizitator să nu preia o sesiune veche
+// Prevents session fixation.
 session_regenerate_id(true);
 
-// În datele demo, fiecare cont poartă numele rolului (admin, manager, depozit, tura)
+// Demo accounts are named after their role.
 $_SESSION['user'] = $role;
 $_SESSION['role'] = $role;
 

@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// PROTECȚIE: Utilizatorul trebuie să fie autentificat
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -11,7 +10,7 @@ $currentPage = 'inbound';
 require_once 'config.php';
 require_once 'flow_helpers.php';
 
-// Utilizează rolul din sesiune, nu din GET
+// The role always comes from the session, never from the query string.
 $roleKey = isset($_SESSION['role']) ? $_SESSION['role'] : 'default';
 $period = isset($_GET['period']) ? $_GET['period'] : '7d';
 
@@ -37,8 +36,7 @@ if ($roleKey === 'tura') {
   $primaryButtonText = "Rezumat recepții";
 }
 
-/* FILTRARE PE PERIOADĂ */
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateCondition = "created_at BETWEEN ? AND ?";
 $periodLabel = "Ultimele 7 zile";
 
@@ -105,10 +103,8 @@ $processingQuery  = "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished
 $backlogQuery     = "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE() AND $dateCondition";
 $highPriorityQuery = "SELECT COUNT(*) AS total FROM inbound_orders WHERE finished_at IS NULL AND (expected_finished_date < CURDATE() OR DATE(created_at) < CURDATE()) AND $dateCondition";
 
-/* tabel */
 $tableQuery = "SELECT * FROM inbound_orders WHERE $dateCondition ORDER BY created_at DESC";
 
-/* avertizări backlog inbound */
 $backlogWarningsQuery = "
   SELECT reception_number, supplier_name,
     DATEDIFF(CURDATE(), COALESCE(expected_finished_date, DATE(created_at))) AS days_overdue
@@ -120,7 +116,6 @@ $backlogWarningsQuery = "
   LIMIT 3
 ";
 
-/* activitate recentă */
 $recentQuery = "
   SELECT reception_number, supplier_name, status, priority, created_at, finished_at
   FROM inbound_orders
@@ -129,7 +124,6 @@ $recentQuery = "
   LIMIT 3
 ";
 
-/* grafic pe zile */
 $dailyChartQuery = "
   SELECT DATE(created_at) AS day_label, COUNT(*) AS total
   FROM inbound_orders
@@ -138,7 +132,6 @@ $dailyChartQuery = "
   ORDER BY DATE(created_at) ASC
 ";
 
-/* grafic pe ore */
 $hourlyChartQuery = "
   SELECT HOUR(created_at) AS hour_label, COUNT(*) AS total
   FROM inbound_orders
@@ -166,7 +159,6 @@ $highPriorityInbound = ($highPriorityResult && $highPriorityResult->num_rows > 0
 
 $completedPercent = ($totalInbound > 0) ? round(($completedInbound / $totalInbound) * 100) : 0;
 
-/* date grafice */
 $dailyLabels = [];
 $dailyData = [];
 
@@ -227,7 +219,6 @@ function statusBadgeClassInbound($status) {
 }
 
 
-/* recomandări simple bazate pe DB */
 $recommendations = [];
 
 if ($highPriorityInbound > 0) {
@@ -556,7 +547,7 @@ while (count($recommendations) < 3) {
     };
   </script>
 
-  <!-- Aplică tema din localStorage după ce body este încărcat -->
+  <!-- Saved color theme -->
   <script>
     (function() {
       const themes = ["theme-flowlogix-classic", "theme-flowlogix-ocean", "theme-flowlogix-orange", "theme-flowlogix-dark", "theme-flowlogix-ice"];

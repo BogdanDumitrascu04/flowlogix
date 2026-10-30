@@ -19,7 +19,7 @@ $roleKey = isset($_SESSION['role']) ? $_SESSION['role'] : 'default';
 
 $period = isset($_GET['period']) ? $_GET['period'] : '7d';
 
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateCondition = "created_at BETWEEN ? AND ?";
 $dateParams = flx_period_params('7d');
 $periodLabel   = "Ultimele 7 zile";
@@ -263,7 +263,6 @@ function activeClass(string $current, string $value, string $base, string $extra
         </div>
       </div>
 
-      <!-- Diagnostic operațional -->
       <div class="card">
         <div class="card-header">
           <div class="card-title-wrap">
@@ -332,7 +331,6 @@ function activeClass(string $current, string $value, string $base, string $extra
         </p>
       </div>
 
-      <!-- Exporturi disponibile -->
       <div class="export-section-header">
         <h2>Exporturi disponibile</h2>
         <p>Descarcă rapoarte CSV pentru perioada selectată.</p>

@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// PROTECȚIE: Doar role 'tura' poate accesa
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -17,7 +16,7 @@ require_once 'flow_helpers.php';
 $currentPage = 'receptii-active';
 
 $period = isset($_GET['period']) ? $_GET['period'] : 'today';
-// Filtrul de perioadă e un fragment SQL fix; limitele intervalului se leagă ca parametri (?)
+// The period condition is fixed SQL text; only its two bounds are bound as parameters.
 $dateCondition = "created_at BETWEEN ? AND ?";
 $dateParams = flx_period_params('today');
 
@@ -95,13 +94,12 @@ $statusCss   = ['backlog' => 'badge-danger', 'pending' => 'badge-warning', 'comp
 $priorityRo  = ['high' => 'Ridicată', 'medium' => 'Medie', 'low' => 'Scăzută'];
 $priorityCss = ['high' => 'badge-danger', 'medium' => 'badge-warning', 'low' => 'badge-success'];
 
-// Query-uri pentru recepții active (derived logic — fără dependență de status/priority stocate)
+// Status and priority are derived from the dates (flow_helpers.php), not read from the stored columns.
 $inProgressQuery = "SELECT COUNT(*) as total FROM inbound_orders WHERE finished_at IS NULL AND $dateCondition";
 $priorityQuery = "SELECT COUNT(*) as total FROM inbound_orders WHERE finished_at IS NULL AND (expected_finished_date < CURDATE() OR DATE(created_at) < CURDATE()) AND $dateCondition";
 $atRiskQuery = "SELECT COUNT(*) as total FROM inbound_orders WHERE finished_at IS NULL AND expected_finished_date IS NOT NULL AND expected_finished_date < CURDATE() AND $dateCondition";
 $completedPeriodQuery = "SELECT COUNT(*) as total FROM inbound_orders WHERE finished_at IS NOT NULL AND $finishedAtCondition";
 
-// Tabel recepții active
 $tableQuery = "SELECT
     reception_number,
     supplier_name,
@@ -217,7 +215,6 @@ $completedPeriod = ($completedPeriodResult && $completedPeriodResult->num_rows >
               </div>
             </div>
 
-            <!-- Tabel recepții -->
             <div class="card">
               <div class="card-header">
                 <div class="card-title-wrap">

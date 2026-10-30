@@ -1,10 +1,6 @@
-/* ========================================
-   SIDEBAR - FOLOSESTE VARIABILE DIN styles.css
-   ======================================== */
+/* Sidebar. Colors come from the theme variables in styles.css */
 
-/* ========================================
-   BOX SIZING
-   ======================================== */
+/* Box sizing */
 * {
   box-sizing: border-box;
 }
@@ -13,9 +9,7 @@ body {
   margin: 0;
 }
 
-/* ========================================
-   SIDEBAR PRINCIPAL
-   ======================================== */
+/* Sidebar */
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -50,7 +44,7 @@ body {
   background: var(--sidebar-active-soft);
 }
 
-/* Sectiune ancorata la baza (Sesiune / Deconectare) */
+/* Logout section pinned to the bottom */
 .sidebar .sidebar-section-footer {
   margin-top: auto;
   padding-top: 16px;
@@ -61,9 +55,7 @@ body {
   margin-bottom: 18px;
 }
 
-/* ========================================
-   BRAND
-   ======================================== */
+/* Brand */
 .brand {
   display: flex;
   align-items: center;
@@ -93,7 +85,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.6);  /* logo-ul intern e mai mare in container, fara sa strice patratul */
+  transform: scale(1.6);  /* the PNG has padding around the logo */
 }
 
 .brand-text {
@@ -113,14 +105,12 @@ body {
   color: var(--sidebar-muted);
 }
 
-/* ========================================
-   SECTIUNI MENIU
-   ======================================== */
+/* Menu sections */
 .sidebar-section {
   margin-top: 14px;
 }
 
-/* Separator fin intre sectiuni consecutive (nu se aplica primei) */
+/* Thin separator between sections, not above the first one */
 .sidebar-section + .sidebar-section:not(.sidebar-section-footer) {
   margin-top: 18px;
   padding-top: 18px;
@@ -136,9 +126,7 @@ body {
   color: var(--sidebar-muted);
 }
 
-/* ========================================
-   MENIU
-   ======================================== */
+/* Menu items */
 .menu-list {
   list-style: none;
   padding: 0;
@@ -193,7 +181,7 @@ body {
   color: var(--sidebar-active);
 }
 
-/* Buton Deconectare: accent rosu subtle pe hover */
+/* Logout: subtle red on hover */
 .menu-item-danger a:hover {
   background: rgba(239, 68, 68, 0.10);
   border-color: rgba(239, 68, 68, 0.18);
@@ -205,9 +193,7 @@ body {
 }
 
 
-/* ========================================
-   CARD UTILIZATOR
-   ======================================== */
+/* User card */
 .sidebar-user-card {
   margin-top: 18px;
   padding: 12px 14px;
@@ -282,7 +268,7 @@ body {
 }
 
 .role-admin {
-  background: rgba(148, 163, 184, 0.2);   /* slate neutru — semnaleaza system user */
+  background: rgba(148, 163, 184, 0.2);   /* neutral slate for the system user */
   color: #cbd5e1;
 }
 
@@ -291,10 +277,8 @@ body {
   color: var(--sidebar-text);
 }
 
-/* ========================================
-   RESPONSIVE
-   ======================================== */
-/* Laptop mic: sidebar îngust, doar cu iconițe */
+/* Responsive */
+/* Small laptops: narrow, icon-only sidebar */
 @media (max-width: 1080px) and (min-width: 901px) {
   .sidebar {
     width: 92px;
@@ -324,19 +308,14 @@ body {
 
 }
 
-/* ========================================
-   TRANZITIE GLOBALA
-   ======================================== */
+/* Theme transitions */
 .sidebar,
 .sidebar * {
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-/* ========================================
-   TELEFON ȘI TABLETĂ (sub 900px)
-   Sidebar-ul devine meniu ascuns în stânga, deschis din bara de sus.
-   Stă după tranziția globală ca să o poată suprascrie.
-   ======================================== */
+/* Phones and tablets (below 900px): off-canvas menu opened from the top bar.
+   Kept after the theme transitions so it can override them. */
 .mobile-topbar,
 .sidebar-close,
 .sidebar-backdrop {
@@ -393,7 +372,7 @@ body {
     font-size: 0.9rem;
   }
 
-  /* Meniul: ascuns în afara ecranului până la click pe hamburger */
+  /* Off screen until the menu button is pressed */
   .sidebar {
     width: min(300px, 86vw);
     transform: translateX(-100%);
@@ -422,7 +401,7 @@ body {
     font-size: 1.4rem;
   }
 
-  /* Fundal semi-transparent peste conținut; click pe el închide meniul */
+  /* Dimmed backdrop; a click on it closes the menu */
   .sidebar-backdrop {
     display: block;
     position: fixed;
@@ -440,7 +419,7 @@ body {
     transition: opacity 0.25s ease;
   }
 
-  /* Pagina din spate nu se mai derulează cât timp meniul e deschis */
+  /* No page scrolling behind the open menu */
   body.sidebar-open {
     overflow: hidden;
   }

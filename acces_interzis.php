@@ -1,10 +1,7 @@
 <?php
 /*
- * acces_interzis.php
- * Pagină comună de acces restricționat (HTTP 403).
- * Inclusă de gărzile de rol când un utilizator autentificat
- * încearcă să acceseze o pagină care nu îi este permisă rolului său.
- * Se oprește pe URL-ul paginii cerute (fără redirecționare).
+ * 403 page, included by the role checks when a logged-in user opens a page
+ * of another role. It renders in place, so the URL stays the one requested.
  */
 
 if (session_status() === PHP_SESSION_NONE) {

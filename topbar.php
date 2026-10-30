@@ -2,7 +2,7 @@
 $userName = "Utilizator";
 $roleKey = "default";
 
-// Utilizează valorile din sesiune, nu din GET
+// Identity always comes from the session, never from the query string.
 if (isset($_SESSION['user']) && $_SESSION['user'] !== '') {
   $userName = htmlspecialchars($_SESSION['user']);
 }

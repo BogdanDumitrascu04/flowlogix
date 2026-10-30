@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// PROTECȚIE: Doar role 'tura' poate accesa
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -16,19 +15,18 @@ require_once 'flow_helpers.php';
 
 $currentPage = 'control-operational';
 
-// INBOUND
+// Inbound
 $inboundActiveQuery = "SELECT COUNT(*) as total FROM inbound_orders WHERE finished_at IS NULL AND DATE(created_at) = CURDATE()";
 $inboundTableQuery = "SELECT reception_number, supplier_name, status, priority, created_at, finished_at, expected_finished_date FROM inbound_orders WHERE finished_at IS NULL AND DATE(created_at) = CURDATE() ORDER BY created_at DESC LIMIT 5";
 
-// PICKPACK
+// Pick / pack
 $pickpackActiveQuery = "SELECT COUNT(*) as total FROM pickpack_orders WHERE finished_at IS NULL AND DATE(created_at) = CURDATE()";
 $pickpackTableQuery = "SELECT order_number, operator_name, items_count, status, created_at, finished_at, expected_finished_date FROM pickpack_orders WHERE finished_at IS NULL AND DATE(created_at) = CURDATE() ORDER BY created_at DESC LIMIT 5";
 
-// OUTBOUND
+// Outbound
 $outboundActiveQuery = "SELECT COUNT(*) as total FROM outbound_orders WHERE finished_at IS NULL AND DATE(created_at) = CURDATE()";
 $outboundTableQuery = "SELECT order_number, destination, created_at, planned_date, finished_at FROM outbound_orders WHERE finished_at IS NULL AND DATE(created_at) = CURDATE() ORDER BY planned_date ASC LIMIT 5";
 
-// PROBLEME (blocaje derivate)
 $problemsQuery = "
   SELECT (
     (SELECT COUNT(*) FROM inbound_orders  WHERE finished_at IS NULL AND (expected_finished_date < CURDATE() OR DATE(created_at) < CURDATE()))
@@ -129,7 +127,7 @@ $blocajeTableResult  = $conn->query($blocajeTableQuery);
             </div>
 
       <div class="cards-grid three-col">
-                <!-- INBOUND -->
+                <!-- Inbound -->
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title-wrap">
@@ -169,7 +167,7 @@ $blocajeTableResult  = $conn->query($blocajeTableQuery);
                     </div>
                 </div>
 
-                <!-- PICKPACK -->
+                <!-- Pick / pack -->
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title-wrap">
@@ -204,7 +202,7 @@ $blocajeTableResult  = $conn->query($blocajeTableQuery);
                     </div>
                 </div>
 
-                <!-- OUTBOUND -->
+                <!-- Outbound -->
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title-wrap">

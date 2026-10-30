@@ -1,17 +1,14 @@
 <?php
 /*
- * simulate_orders.php
- * Simulator de comenzi pentru demo: rulează o dată pe oră (cron sau Task Scheduler)
- * și imită o oră de lucru într-un depozit:
- *   1. creează comenzi noi pe cele trei fluxuri (inbound, pick & pack, outbound);
- *   2. avansează comenzile deschise din ultimele zile: unele se finalizează, altele întârzie.
+ * Demo order simulator, run once an hour by cron. Each run simulates one hour of
+ * warehouse work: it creates new orders on the three flows and moves open orders
+ * from the last days forward, so some finish and others fall behind.
  *
- * Rulare, din folderul proiectului:
- *   php jobs/simulate_orders.php           doar în programul depozitului (06:00–22:00)
- *   php jobs/simulate_orders.php --force   oricând, pentru test
+ *   php jobs/simulate_orders.php           only during working hours (06:00-22:00)
+ *   php jobs/simulate_orders.php --force   any time, for tests
  *
- * Fiecare oră se simulează o singură dată: tabelul simulator_runs are cheia primară
- * pe ora rulării, deci a doua rulare în aceeași oră e refuzată de baza de date.
+ * An hour is simulated at most once: simulator_runs has the hour as its primary key,
+ * so a second run in the same hour is refused by the database.
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -22,16 +19,16 @@ if (PHP_SAPI !== 'cli') {
 require_once __DIR__ . '/../config.php';
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-const WORK_START_HOUR     = 6;   // prima oră a programului depozitului
-const WORK_END_HOUR       = 22;  // programul se termină la 22:00
-const ADVANCE_WINDOW_DAYS = 2;   // se avansează doar comenzile din ultimele 2 zile; restanțele mai vechi rămân
+const WORK_START_HOUR     = 6;
+const WORK_END_HOUR       = 22;
+const ADVANCE_WINDOW_DAYS = 2;   // older open orders are never advanced, so the backlog stays visible
 
-// Probabilitățile pe oră pentru o comandă deschisă
-const P_INBOUND_FINISH  = 0.5;   // recepția se finalizează
-const P_PICK_ASSIGN     = 0.7;   // comanda primește un operator
-const P_PICK_FINISH     = 0.5;   // operatorul termină comanda
-const P_SHIP_LATE_ORDER = 0.6;   // o expediere care a depășit ora planificată pleacă în ora asta
-const P_SHIP_EARLY      = 0.15;  // o expediere pleacă înainte de ora planificată
+// Hourly probabilities for an open order
+const P_INBOUND_FINISH  = 0.5;
+const P_PICK_ASSIGN     = 0.7;
+const P_PICK_FINISH     = 0.5;
+const P_SHIP_LATE_ORDER = 0.6;   // shipment already past its planned time
+const P_SHIP_EARLY      = 0.15;  // shipment leaves before its planned time
 
 $suppliers    = ['Nordic Goods', 'Urban Trade', 'EuroShip', 'Fresh Import', 'TransLog Expert', 'Atlas Trade', 'Danube Cargo'];
 $operators    = ['Vlad Ionescu', 'Irina S', 'Monica D', 'Paul R', 'Carmen N', 'Dan V', 'Sorin L'];
@@ -47,7 +44,7 @@ function sim_chance(float $probability): bool
     return mt_rand() / mt_getrandmax() < $probability;
 }
 
-// Un moment aleator între începutul orei curente și acum
+// A random moment between the start of the current hour and now
 function sim_time_this_hour(DateTime $now): string
 {
     $start = (clone $now)->setTime((int)$now->format('G'), 0, 0);
@@ -72,14 +69,14 @@ if (!$force && ($hour < WORK_START_HOUR || $hour >= WORK_END_HOUR)) {
 
 $nowStr      = $now->format('Y-m-d H:i:s');
 $runHour     = $now->format('Y-m-d H:00:00');
-// Comenzile create după ora 18 au termen a doua zi
+// Orders created after 18:00 are due the next day
 $dueDate     = $hour < 18 ? $now->format('Y-m-d') : (clone $now)->modify('+1 day')->format('Y-m-d');
 $windowStart = (clone $now)->modify('-' . ADVANCE_WINDOW_DAYS . ' days')->format('Y-m-d H:i:s');
 
 $conn->begin_transaction();
 
 try {
-    // 1. Marchează ora ca simulată. Dacă ora există deja, cheia primară oprește rularea (eroarea 1062).
+    // Claim the hour first; a duplicate key (error 1062) means it was already simulated.
     $mark = $conn->prepare("INSERT INTO simulator_runs (run_hour, created_orders, advanced_orders, ran_at) VALUES (?, 0, 0, ?)");
     $mark->bind_param("ss", $runHour, $nowStr);
     $mark->execute();
@@ -96,7 +93,7 @@ try {
     $created  = 0;
     $advanced = 0;
 
-    // 2. Comenzi noi
+    // New orders
     $insertInbound = $conn->prepare(
         "INSERT INTO inbound_orders (supplier_name, reception_number, status, priority, created_at, expected_finished_date)
          VALUES (?, ?, 'pending', ?, ?, ?)"
@@ -112,7 +109,7 @@ try {
         $created++;
     }
 
-    // Comenzile pick & pack noi nu au încă operator (șir gol = „neînceput” în aplicație)
+    // New pick/pack orders have no operator yet; the app reads an empty name as "not started".
     $insertPickpack = $conn->prepare(
         "INSERT INTO pickpack_orders (order_number, operator_name, items_count, status, created_at, expected_finished_date)
          VALUES (?, '', ?, 'not_started', ?, ?)"
@@ -142,7 +139,7 @@ try {
         $created++;
     }
 
-    // 3. Avansează comenzile deschise create înainte de ora curentă, în fereastra de 2 zile
+    // Advance open orders created before this hour, within the advance window
     $openInbound = $conn->prepare(
         "SELECT id, status FROM inbound_orders
          WHERE finished_at IS NULL AND created_at >= ? AND created_at < ?"
@@ -221,7 +218,6 @@ try {
         }
     }
 
-    // 4. Salvează rezultatul orei și confirmă totul deodată
     $summary = $conn->prepare("UPDATE simulator_runs SET created_orders = ?, advanced_orders = ? WHERE run_hour = ?");
     $summary->bind_param("iis", $created, $advanced, $runHour);
     $summary->execute();
@@ -229,11 +225,11 @@ try {
     $conn->commit();
     echo "Ora {$runHour}: {$created} comenzi noi, {$advanced} comenzi avansate.\n";
 } catch (Throwable $e) {
-    // Orice eroare anulează toată ora, inclusiv marcajul, ca rularea următoare să o poată relua
+    // Any error rolls back the whole hour, including its claim, so the next run can retry it.
     try {
         $conn->rollback();
     } catch (Throwable $ignored) {
-        // păstrăm eroarea originală, nu pe cea de la rollback
+        // keep the original error, not one from the rollback
     }
     throw $e;
 }

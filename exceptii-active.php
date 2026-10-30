@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// PROTECȚIE: Doar role 'tura' poate accesa
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -16,12 +15,11 @@ require_once 'flow_helpers.php';
 
 $currentPage = 'exceptii-active';
 
-// Query-uri pentru excepții (derived logic — fără status/priority/delay_minutes stocate)
+// Status, priority and delay are derived from the dates (flow_helpers.php), not read from the stored columns.
 $delayedInboundQuery  = "SELECT COUNT(*) as total FROM inbound_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE() AND DATE(created_at) = CURDATE()";
 $delayedPickpackQuery = "SELECT COUNT(*) as total FROM pickpack_orders WHERE finished_at IS NULL AND expected_finished_date < CURDATE() AND DATE(created_at) = CURDATE()";
 $delayedOutboundQuery = "SELECT COUNT(*) as total FROM outbound_orders WHERE (finished_at IS NULL AND DATE(planned_date) < CURDATE() OR finished_at IS NOT NULL AND DATE(finished_at) > DATE(planned_date)) AND DATE(created_at) = CURDATE()";
 
-// Tabel excepții combinate (derived logic)
 $exceptionsQuery = "
 (SELECT
     'inbound' COLLATE utf8mb4_general_ci as flux,
@@ -149,7 +147,6 @@ $totalExceptions = $delayedInbound + $delayedPickpack + $delayedOutbound;
                 </div>
       </div>
 
-      <!-- Tabel excepții -->
       <div class="card">
         <div class="card-header">
           <div class="card-title-wrap">
@@ -208,7 +205,6 @@ $totalExceptions = $delayedInbound + $delayedPickpack + $delayedOutbound;
         </div>
       </div>
 
-      <!-- Info bloc -->
       <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 16px; border-radius: 10px; margin-top: 20px;">
         <p style="margin: 0; color: #166534; line-height: 1.6;">
           <strong>Excepții urmărite:</strong><br>

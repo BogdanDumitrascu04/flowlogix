@@ -3,7 +3,7 @@ session_start();
 require_once 'config.php';
 require_once 'csrf.php';
 
-// Limita de încercări greșite: după 5 de pe același IP în 15 minute, login-ul e refuzat
+// Brute-force protection: an IP with 5 failed logins in 15 minutes is refused.
 $maxFailedLogins = 5;
 $failedLoginWindowMinutes = 15;
 
@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
-// Formularul trebuie să poarte tokenul primit pe login.php; altfel a expirat sau vine de pe alt site
+// No valid token: the login page expired or the form was posted from another site.
 if (!csrf_valid()) {
     header("Location: login.php?error=expired");
     exit;
@@ -28,7 +28,6 @@ if ($name === "" || $password === "") {
 
 $ip = $_SERVER['REMOTE_ADDR'] ?? '';
 
-// Câte încercări greșite au venit de pe acest IP în ultimele 15 minute
 $sql = "SELECT COUNT(*) FROM login_attempts WHERE ip = ? AND attempted_at > NOW() - INTERVAL ? MINUTE";
 $stmt = $conn->prepare($sql);
 
@@ -40,13 +39,12 @@ $stmt->bind_param("si", $ip, $failedLoginWindowMinutes);
 $stmt->execute();
 $failedCount = (int) $stmt->get_result()->fetch_row()[0];
 
-// Peste limită parola nici nu se mai verifică, deci ghicirea ei prin încercări repetate se oprește aici
+// Checked before password_verify(), so a locked-out IP gets no answer about the password.
 if ($failedCount >= $maxFailedLogins) {
     header("Location: login.php?error=locked");
     exit;
 }
 
-// Caută utilizatorul doar după nume; parola se verifică în PHP, nu în SQL
 $sql = "SELECT id, role, password FROM users WHERE name = ?";
 $stmt = $conn->prepare($sql);
 
@@ -59,23 +57,19 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = ($result->num_rows === 1) ? $result->fetch_assoc() : null;
 
-// password_verify recalculează hash-ul parolei introduse cu salt-ul salvat în hash
 if ($user && password_verify($password, $user['password'])) {
     $role = $user['role'];
 
-    // ID nou de sesiune la login: un ID aflat sau impus de altcineva înainte (session fixation) nu mai e valabil
+    // Prevents session fixation.
     session_regenerate_id(true);
 
-    // Salvează în sesiune
     $_SESSION['user'] = $name;
     $_SESSION['role'] = $role;
 
-    // După un login reușit, încercările greșite de pe acest IP nu mai contează
     $clear = $conn->prepare("DELETE FROM login_attempts WHERE ip = ?");
     $clear->bind_param("s", $ip);
     $clear->execute();
 
-    // Redirecționare bazată pe rolul din DB
     if ($role === "tura") {
         header("Location: dashboard-tura.php?user=" . urlencode($name) . "&role=" . urlencode($role));
     } elseif ($role === "depozit") {
@@ -89,7 +83,7 @@ if ($user && password_verify($password, $user['password'])) {
     }
     exit;
 } else {
-    // Se notează încercarea greșită; rândurile mai vechi de o zi se șterg, ca tabelul să rămână mic
+    // Old rows are pruned here, so the table needs no separate cleanup job.
     $log = $conn->prepare("INSERT INTO login_attempts (ip, attempted_at) VALUES (?, NOW())");
     $log->bind_param("s", $ip);
     $log->execute();

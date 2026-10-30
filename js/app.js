@@ -1,6 +1,4 @@
-/* ========================================
-   CONFIGURATIE TEME - GLOBAL
-   ======================================== */
+/* Themes */
 const AVAILABLE_THEMES = [
   "theme-flowlogix-classic",
   "theme-flowlogix-ocean",
@@ -17,7 +15,7 @@ const THEME_LABELS = {
   "theme-flowlogix-ice": "FlowLogix Ice"
 };
 
-// Aplicare tema IMEDIAT - evita flash of unstyled content
+// Apply the saved theme before the first paint, so the default theme never flashes.
 (function() {
   const savedTheme = localStorage.getItem("flowlogix_theme");
   if (savedTheme && AVAILABLE_THEMES.includes(savedTheme)) {
@@ -48,22 +46,17 @@ const CONFIG = {
   }
 };
 
-/* ========================================
-   FUNCTII PENTRU TEME
-   ======================================== */
+/* Theme helpers */
 function applyTheme(themeName) {
   const body = document.body;
   const safeTheme = AVAILABLE_THEMES.includes(themeName)
     ? themeName
     : AVAILABLE_THEMES[0];
 
-  // Elimina toate clasele de temă
   AVAILABLE_THEMES.forEach((theme) => body.classList.remove(theme));
 
-  // Adauga tema selectată
   body.classList.add(safeTheme);
 
-  // Salveaza în localStorage
   localStorage.setItem(CONFIG.storage.theme, safeTheme);
 
   return safeTheme;
@@ -73,7 +66,6 @@ function syncSettingsUI(themeName) {
   const themeCards = document.querySelectorAll("[data-theme-card]");
   const themeLabelEl = document.getElementById("activeThemeLabel");
 
-  // Sincronizează cardurile de preview și badge-urile
   themeCards.forEach((card) => {
     const isActive = card.dataset.themeCard === themeName;
     card.classList.toggle("active-theme", isActive);
@@ -83,7 +75,6 @@ function syncSettingsUI(themeName) {
     }
   });
 
-  // Actualizează labelul temei selectate dacă element-ul există
   if (themeLabelEl && THEME_LABELS[themeName]) {
     themeLabelEl.textContent = THEME_LABELS[themeName];
   }
@@ -93,7 +84,6 @@ function changeTheme(themeName) {
   const appliedTheme = applyTheme(themeName);
   const page = document.body.dataset.page || "";
 
-  // Sincronizează UI-ul dacă suntem pe pagina setari
   if (page === "setari") {
     syncSettingsUI(appliedTheme);
   }
@@ -104,15 +94,12 @@ function initializeTheme() {
   const appliedTheme = applyTheme(savedTheme);
   const page = document.body.dataset.page || "";
 
-  // Dacă suntem pe pagina setari, sincronizează UI-ul
   if (page === "setari") {
     syncSettingsUI(appliedTheme);
   }
 }
 
-/* ========================================
-   UTILITĂȚI
-   ======================================== */
+/* Utilities */
 function syncSelectWithStorage(element, storageKey, onChangeCallback) {
   if (!element) return;
   const saved = localStorage.getItem(storageKey);
@@ -136,17 +123,13 @@ function downloadCSV(csvContent, filename) {
   URL.revokeObjectURL(url);
 }
 
-/* ========================================
-   INCARCARE PAGINA
-   ======================================== */
+/* Page setup */
 document.addEventListener("DOMContentLoaded", () => {
   const body = document.body;
   const page = body.dataset.page || "";
 
-  // Inițializare temă
   initializeTheme();
 
-  // Detectare elemente globale
   const periodSelect = document.getElementById("periodSelect");
   const warehouseSelect = document.getElementById("warehouseSelect");
   const statusFilter = document.getElementById("statusFilter");
@@ -160,9 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalTitle = document.getElementById("modalTitle");
   const modalBody = document.getElementById("modalBody");
 
-  /* ========================================
-     FUNCTII HELPER
-     ======================================== */
+  /* Helpers */
   function formatTime() {
     const now = new Date();
     return now.toLocaleTimeString("ro-RO");
@@ -185,14 +166,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (modal) modal.classList.remove("open");
   }
 
-  /* ========================================
-     INIȚIALIZARE
-     ======================================== */
-  setLastUpdate();
+    setLastUpdate();
 
-  /* ========================================
-     NOTIFICARI
-     ======================================== */
+  /* Notifications */
   if (notificationToggle && notificationDropdown) {
     notificationToggle.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -207,9 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ========================================
-     MODALE
-     ======================================== */
+  /* Modals */
 
   if (closeModalBtn) {
     closeModalBtn.addEventListener("click", closeModal);
@@ -235,9 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  /* ========================================
-     EXPORT CSV
-     ======================================== */
+  /* CSV export */
   function exportTableToCSV(tableId, filename = "export.csv") {
     const table = document.getElementById(tableId);
     if (!table) return;
@@ -266,9 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ========================================
-     CAUTARE SI SORTARE TABEL
-     ======================================== */
+  /* Table search and sorting */
   const ordersSearch = document.getElementById("ordersSearch");
   const ordersTableRows = document.querySelectorAll("#ordersTable tbody tr");
   if (ordersSearch) {
@@ -305,9 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  /* ========================================
-     GRAFICE
-     ======================================== */
+  /* Charts */
   function buildChart(id, type, data, options = {}) {
     const ctx = document.getElementById(id);
     if (!ctx || typeof Chart === "undefined") return null;
@@ -322,9 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chart.update("none");
   }
 
-  /* ========================================
-     SELECTURI SI FILTRE
-     ======================================== */
+  /* Selects and filters */
   if (periodSelect) {
     periodSelect.addEventListener("change", () => {
       const url = new URL(window.location.href);
@@ -348,9 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ========================================
-     CONSTRUCTIE GRAFICE
-     ======================================== */
+  /* Charts for each page */
   function createBasicCharts() {
     if (page === "inbound" || page === "analiza-inbound") {
       const daily = window.inboundMainChartData || {
@@ -670,9 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /* ========================================
-     RAPOARTE
-     ======================================== */
+  /* Reports */
   if (page === "rapoarte") {
     const printReportBtn = document.getElementById("printReportBtn");
     const previewButtons = document.querySelectorAll(".preview-report-btn");
@@ -916,21 +878,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ========================================
-     PAGINA SETARI
-     ======================================== */
+  /* Settings page */
   if (page === "setari") {
     const themeSelect = document.getElementById("themeSelect");
     const themeCards = document.querySelectorAll("[data-theme-card]");
 
-    // Schimbare din select
     if (themeSelect) {
       themeSelect.addEventListener("change", () => {
         changeTheme(themeSelect.value);
       });
     }
 
-    // Schimbare din carduri
     themeCards.forEach((card) => {
       card.addEventListener("click", () => {
         const themeName = card.dataset.themeCard;
@@ -939,15 +897,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ========================================
-     INCEPUT - CONSTRUCTIE GRAFICE
-     ======================================== */
-  createBasicCharts();
+    createBasicCharts();
 });
 
-/* ========================================
-   ASCULTARE SCHIMBARI LOCALE STORAGE
-   ======================================== */
+/* Keep the theme in sync across open tabs */
 window.addEventListener("storage", (event) => {
   if (event.key === CONFIG.storage.theme && event.newValue) {
     applyTheme(event.newValue);

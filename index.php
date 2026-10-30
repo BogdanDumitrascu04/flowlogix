@@ -1,9 +1,5 @@
 <?php
-/*
- * index.php
- * Pagina de start: trimite utilizatorul logat la dashboard-ul rolului său,
- * iar pe cel nelogat la login. Logo-ul din meniu duce tot aici.
- */
+// Entry point and logo link: logged-in users go to their role's dashboard, everyone else to the login page.
 session_start();
 
 $homes = [
