@@ -90,6 +90,16 @@ CREATE TABLE IF NOT EXISTS `daily_summaries` (
   KEY `idx_summaries_generated_at` (`generated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Failed logins, used by authenticate.php to refuse an IP after 5 failures
+-- in 15 minutes. Rows older than a day are deleted by authenticate.php.
+CREATE TABLE IF NOT EXISTS `login_attempts` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `ip` VARCHAR(45) NOT NULL COMMENT 'IPv4 or IPv6',
+  `attempted_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_attempts_ip_time` (`ip`, `attempted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Demo users (password: demo123)
 INSERT INTO `users` (`name`, `password`, `role`) VALUES
 ('admin', '$2y$10$WB0.N600xa7p8eDAJ3rqmOL7dnWwfEwP7zttDADdHPlufzYf0T5fy', 'admin'),
