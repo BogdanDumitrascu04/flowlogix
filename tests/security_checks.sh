@@ -49,7 +49,7 @@ login()    { # user: logs in through the form, with the token from login.php
 rm -f "$JAR"
 expect "login without a CSRF token is refused" "login.php?error=expired" \
     "$(redirect -d 'name=manager&password=demo123' "$BASE/authenticate.php")"
-expect "login with the CSRF token works" "dashboard-manager.php?user=manager&role=manager" "$(login manager)"
+expect "login with the CSRF token works" "dashboard-manager.php" "$(login manager)"
 
 # Session fixation: the session ID used before the login is not the one used after it
 rm -f "$JAR"

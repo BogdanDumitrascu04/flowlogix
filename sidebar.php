@@ -154,28 +154,28 @@ function isActive($pageName, $currentPage) {
         <span class="sidebar-label">Coordonare depozit</span>
         <ul class="menu-list">
           <li class="menu-item <?php echo isActive('dashboard', $currentPage); ?>">
-            <a href="dashboard-depozit.php?user=<?php echo urlencode($userName); ?>&role=<?php echo urlencode($roleKey); ?>">
+            <a href="dashboard-depozit.php">
               <i class='bx bx-grid-alt'></i>
               <span>Dashboard depozit</span>
             </a>
           </li>
 
           <li class="menu-item <?php echo isActive('inbound', $currentPage); ?>">
-            <a href="inbound.php?user=<?php echo urlencode($userName); ?>&role=<?php echo urlencode($roleKey); ?>">
+            <a href="inbound.php">
               <i class='bx bx-log-in-circle'></i>
               <span>Inbound</span>
             </a>
           </li>
 
           <li class="menu-item <?php echo isActive('pickpack', $currentPage); ?>">
-            <a href="pickpack.php?user=<?php echo urlencode($userName); ?>&role=<?php echo urlencode($roleKey); ?>">
+            <a href="pickpack.php">
               <i class='bx bx-package'></i>
               <span>Pick / Pack</span>
             </a>
           </li>
 
           <li class="menu-item <?php echo isActive('outbound', $currentPage); ?>">
-            <a href="outbound.php?user=<?php echo urlencode($userName); ?>&role=<?php echo urlencode($roleKey); ?>">
+            <a href="outbound.php">
               <i class='bx bx-log-out-circle'></i>
               <span>Outbound</span>
             </a>
@@ -187,14 +187,14 @@ function isActive($pageName, $currentPage) {
         <span class="sidebar-label">Administrare</span>
         <ul class="menu-list">
           <li class="menu-item <?php echo isActive('rapoarte', $currentPage); ?>">
-            <a href="rapoarte.php?user=<?php echo urlencode($userName); ?>&role=<?php echo urlencode($roleKey); ?>">
+            <a href="rapoarte.php">
               <i class='bx bx-file'></i>
               <span>Rapoarte</span>
             </a>
           </li>
 
           <li class="menu-item <?php echo isActive('setari', $currentPage); ?>">
-            <a href="setari.php?user=<?php echo urlencode($userName); ?>&role=<?php echo urlencode($roleKey); ?>">
+            <a href="setari.php">
               <i class='bx bx-cog'></i>
               <span>Setări</span>
             </a>
@@ -208,14 +208,14 @@ function isActive($pageName, $currentPage) {
         <span class="sidebar-label">Operațiuni</span>
         <ul class="menu-list">
           <li class="menu-item <?php echo isActive('dashboard', $currentPage); ?>">
-            <a href="dashboard-manager.php?user=<?php echo urlencode($userName); ?>&role=<?php echo urlencode($roleKey); ?>">
+            <a href="dashboard-manager.php">
               <i class='bx bx-line-chart'></i>
               <span>Dashboard manager</span>
             </a>
           </li>
 
           <li class="menu-item <?php echo isActive('rapoarte', $currentPage); ?>">
-            <a href="rapoarte.php?user=<?php echo urlencode($userName); ?>&role=<?php echo urlencode($roleKey); ?>">
+            <a href="rapoarte.php">
               <i class='bx bx-bar-chart-alt-2'></i>
               <span>Rapoarte manageriale</span>
             </a>
@@ -227,21 +227,21 @@ function isActive($pageName, $currentPage) {
         <span class="sidebar-label">Analiză și control</span>
         <ul class="menu-list">
           <li class="menu-item">
-            <a href="dashboard-manager.php?user=<?php echo urlencode($userName); ?>&role=<?php echo urlencode($roleKey); ?>#performanta-fluxuri">
+            <a href="dashboard-manager.php#performanta-fluxuri">
               <i class='bx bx-pie-chart-alt-2'></i>
               <span>Performanță pe fluxuri</span>
             </a>
           </li>
 
           <li class="menu-item">
-            <a href="dashboard-manager.php?user=<?php echo urlencode($userName); ?>&role=<?php echo urlencode($roleKey); ?>#situatii-intarziate">
+            <a href="dashboard-manager.php#situatii-intarziate">
               <i class='bx bx-time-five'></i>
               <span>Situații întârziate</span>
             </a>
           </li>
 
           <li class="menu-item <?php echo isActive('setari', $currentPage); ?>">
-            <a href="setari.php?user=<?php echo urlencode($userName); ?>&role=<?php echo urlencode($roleKey); ?>">
+            <a href="setari.php">
               <i class='bx bx-cog'></i>
               <span>Setări</span>
             </a>

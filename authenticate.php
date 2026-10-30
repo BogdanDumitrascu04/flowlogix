@@ -71,11 +71,11 @@ if ($user && password_verify($password, $user['password'])) {
     $clear->execute();
 
     if ($role === "tura") {
-        header("Location: dashboard-tura.php?user=" . urlencode($name) . "&role=" . urlencode($role));
+        header("Location: dashboard-tura.php");
     } elseif ($role === "depozit") {
-        header("Location: dashboard-depozit.php?user=" . urlencode($name) . "&role=" . urlencode($role));
+        header("Location: dashboard-depozit.php");
     } elseif ($role === "manager") {
-        header("Location: dashboard-manager.php?user=" . urlencode($name) . "&role=" . urlencode($role));
+        header("Location: dashboard-manager.php");
     } elseif ($role === "admin") {
         header("Location: admin.php");
     } else {
