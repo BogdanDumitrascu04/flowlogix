@@ -375,6 +375,11 @@ try {
       .kpi-grid .kpi-card .kpi-info-btn:focus + .kpi-info-panel {
         transform: translateY(0);
       }
+      /* Cardul nu taie ce iese din el (overflow: visible), deci cercul decorativ rămâne înăuntru */
+      .kpi-card::after {
+        right: 0;
+        bottom: 0;
+      }
     }
 
     [data-page="dashboard-manager"] .page-shell { padding-top: 10px; }
