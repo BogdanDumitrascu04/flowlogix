@@ -307,8 +307,14 @@ body {
 
   .brand-text,
   .sidebar-label,
-  .menu-item a span {
+  .menu-item a span,
+  .sidebar-user-info {
     display: none;
+  }
+
+  .sidebar-user-card {
+    justify-content: center;
+    padding: 10px;
   }
 
   .menu-item a {
