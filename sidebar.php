@@ -298,7 +298,7 @@ function isActive($pageName, $currentPage) {
     <span class="sidebar-label">Sesiune</span>
     <ul class="menu-list">
       <li class="menu-item menu-item-danger">
-        <a href="login.php" id="logoutBtn">
+        <a href="deconectare.php" id="logoutBtn">
           <i class='bx bx-log-out'></i>
           <span>Deconectare</span>
         </a>
