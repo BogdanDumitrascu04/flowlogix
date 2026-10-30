@@ -166,8 +166,8 @@ The live demo runs on a small Azure virtual machine with Ubuntu 24.04, Apache, P
 - MySQL uses a separate user that can only access the `flowlogix` database
 - `config.php` on the server sets `$demoMode = true`: the role cards on the login page become one-click entries (`demo_login.php`), with an RO / EN switch and a link to the source code, and the user administration page is read-only, so one visitor cannot break the demo for the others. A local install keeps `$demoMode = false`
 - cron runs the order simulator every hour and reloads the demo database every night at 03:15
-- HTTPS uses a free Let's Encrypt certificate that renews automatically
-- every push to `main` runs a GitHub Actions pipeline (`.github/workflows/ci-cd.yml`): it loads the demo data into a fresh MySQL 8 database, runs the order simulator and opens every page as each role (`tests/render_pages.sh`). Only if all of that passes does it update the server, using an SSH key that can run nothing except `deploy/flowlogix-deploy.sh`
+- HTTPS uses a free Let's Encrypt certificate that renews automatically. Requests over plain HTTP, or to the server's IP address, are redirected to the HTTPS domain
+- every push to `main` runs a GitHub Actions pipeline (`.github/workflows/ci-cd.yml`): it loads the demo data into a fresh MySQL 8 database, runs the order simulator, opens every page as each role (`tests/render_pages.sh`) and checks the CSRF tokens, the login limit and the CSV exports over HTTP (`tests/security_checks.sh`). Only if all of that passes does it update the server, using an SSH key that can run nothing except `deploy/flowlogix-deploy.sh`
 
 Moving from WampServer to a standard MySQL server exposed two old bugs: a `GROUP BY` that only worked because WampServer's MySQL is permissive (`ONLY_FULL_GROUP_BY` is off there), and a byte order mark at the start of three PHP files. Both are fixed.
 
@@ -175,18 +175,20 @@ Moving from WampServer to a standard MySQL server exposed two old bugs: a `GROUP
 
 | Path | Purpose |
 |---|---|
-| `login.php`, `authenticate.php` | Login form and login check |
+| `login.php`, `authenticate.php` | Login form and login check, with the limit on failed attempts |
+| `csrf.php` | CSRF token for every form that changes something |
 | `dashboard-*.php` | Home page for each role |
 | `inbound.php`, `pickpack.php`, `outbound.php` | Detailed pages for each flow |
 | `raport-*.php`, `rapoarte.php`, `export_report.php` | Reports and CSV exports |
 | `admin.php` | User management |
 | `sidebar.php`, `js/sidebar.js` | Menu shared by all pages; on phones and tablets it opens from the top bar |
 | `css/`, `js/app.js` | Styles, color themes and responsive layout; charts and filters |
-| `flow_helpers.php` | Shared functions: period filters, the `flx_query()` helper for prepared statements, status rules |
+| `flow_helpers.php` | Shared functions: period filters, the `flx_query()` helper for prepared statements, the CSV row writer, status rules |
 | `database/` | Schema with demo data, and the password migration script |
 | `jobs/simulate_orders.php` | Hourly order simulator |
 | `jobs/daily_summary.php` | AI summary of the day (Claude Haiku, Anthropic PHP SDK) |
 | `tests/render_pages.sh` | Opens every page, period and export as each role and fails on any PHP error |
+| `tests/security_checks.sh` | Sends real HTTP requests to check CSRF tokens, the login limit, the new session ID at login and the CSV formula guard |
 | `.github/workflows/ci-cd.yml`, `deploy/` | Automatic tests and deployment to the live server |
 
 ## Improvements after the thesis
@@ -196,7 +198,13 @@ After the thesis, I fixed two weaknesses that I had listed as future work:
 - **Passwords** were stored as plain text. They are now saved as bcrypt hashes with `password_hash()` and checked with `password_verify()`. The script `database/migrate_passwords.php` converted the existing users once. It skips passwords that are already hashed, so running it twice does no harm.
 - **SQL queries** pasted the period filter into the SQL text. The period came from a fixed list, so it could not be used for SQL injection, but code and values were mixed in one string. Every period filter is now a prepared statement: `created_at BETWEEN ? AND ?`, with the two dates bound as parameters.
 
-Still open: the forms have no CSRF tokens, and the login page has no limit on failed attempts.
+A later review of the live demo found five more problems, now fixed and checked on every push by `tests/security_checks.sh`:
+
+- **Logout** only opened the login page and left the session alive, so the dashboards stayed reachable. It now goes through `deconectare.php`, which destroys the session.
+- **CSRF**: every form that changes something (login, the demo role cards, user administration, demo data) sends a random token saved in the session (`csrf.php`). A page on another site can make the browser send the form, but it cannot read the token, so the request is refused. Adding today's demo data used to run from a plain link and is now a form too.
+- **Failed logins**: after 5 wrong passwords from the same IP address in 15 minutes, `authenticate.php` refuses further attempts from that address without checking the password. Failures are stored in the `login_attempts` table.
+- **Session fixation**: a successful login gives the browser a new session ID (`session_regenerate_id(true)`), so a session ID known to someone else before the login is useless after it.
+- **CSV formula injection**: Excel runs a cell that starts with `=`, `+`, `-` or `@` as a formula. Exported text that starts this way gets an apostrophe in front and opens as plain text (`flx_csv_row()` in `flow_helpers.php`).
 
 ## How it was built
 
